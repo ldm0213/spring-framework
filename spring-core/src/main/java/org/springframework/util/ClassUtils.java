@@ -171,6 +171,7 @@ public abstract class ClassUtils {
 	}
 
 	/**
+	 * 获取当前线程上下文的ClassLoader ->  类的ClassLoader -> 系统的ClassLoader
 	 * Return the default ClassLoader to use: typically the thread context
 	 * ClassLoader, if available; the ClassLoader that loaded the ClassUtils
 	 * class will be used as fallback.

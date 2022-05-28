@@ -127,6 +127,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 
 	private final XmlValidationModeDetector validationModeDetector = new XmlValidationModeDetector();
 
+	// todo: 为什么要使用threadLocal？？？？
 	private final ThreadLocal<Set<EncodedResource>> resourcesCurrentlyBeingLoaded =
 			new NamedThreadLocal<Set<EncodedResource>>("XML bean definition resources currently being loaded"){
 				@Override

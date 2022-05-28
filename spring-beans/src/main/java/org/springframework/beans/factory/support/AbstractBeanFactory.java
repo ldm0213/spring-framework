@@ -1715,6 +1715,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	 * Mark the specified bean as already created (or about to be created).
 	 * <p>This allows the bean factory to optimize its caching for repeated
 	 * creation of the specified bean.
+	 * 并发访问Map  double check
 	 * @param beanName the name of the bean
 	 */
 	protected void markBeanAsCreated(String beanName) {
