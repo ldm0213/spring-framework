@@ -270,11 +270,15 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 	 * @return set of beans registered if any for tooling registration purposes (never {@code null})
 	 */
 	protected Set<BeanDefinitionHolder> doScan(String... basePackages) {
+		// 真正进行给定目录下bean扫描的方法
 		Assert.notEmpty(basePackages, "At least one base package must be specified");
+		// ???为啥用linkedHashSet????
 		Set<BeanDefinitionHolder> beanDefinitions = new LinkedHashSet<>();
 		for (String basePackage : basePackages) {
 			Set<BeanDefinition> candidates = findCandidateComponents(basePackage);
+			// 对于所有bean，组装为BeanDefinitionHolder
 			for (BeanDefinition candidate : candidates) {
+				// asm字节码解析出来meta信息
 				ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(candidate);
 				candidate.setScope(scopeMetadata.getScopeName());
 				String beanName = this.beanNameGenerator.generateBeanName(candidate, this.registry);

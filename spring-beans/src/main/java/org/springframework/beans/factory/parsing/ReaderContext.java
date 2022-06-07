@@ -28,13 +28,16 @@ import org.springframework.lang.Nullable;
  * @since 2.0
  */
 public class ReaderContext {
-
+	// 当前解析的资源
 	private final Resource resource;
 
+	// 解析资源时的日志和异常处理 相当于断言工具和日志 作用于解析文件时
 	private final ProblemReporter problemReporter;
 
+	// 观察者模式: 定义的一些事件发布监听 在XmlBeanDefinitionReader 中无实际作用
 	private final ReaderEventListener eventListener;
 
+	// 元数据对象， 在XmlBeanDefinitionReader 中无实际作用
 	private final SourceExtractor sourceExtractor;
 
 

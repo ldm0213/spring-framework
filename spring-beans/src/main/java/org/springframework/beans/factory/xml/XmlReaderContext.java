@@ -46,8 +46,8 @@ public class XmlReaderContext extends ReaderContext {
 
 	private final XmlBeanDefinitionReader reader;
 
+	/** 命名空间处理器: 容器用于加载所有的命名空间处理器理器会将META-INF中 springhandlers 中的装载到容器中 **/
 	private final NamespaceHandlerResolver namespaceHandlerResolver;
-
 
 	/**
 	 * Construct a new {@code XmlReaderContext}.

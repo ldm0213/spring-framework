@@ -106,18 +106,24 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 
 	private boolean namespaceAware = false;
 
+	// 真正执行解析xml的类,具体委托给BeanDefinitionParserDelegate执行具体的解析工作
 	private Class<? extends BeanDefinitionDocumentReader> documentReaderClass =
 			DefaultBeanDefinitionDocumentReader.class;
 
+	// 解析资源时的日志和异常处理 相当于断言工具和日志 作用于解析文件时
 	private ProblemReporter problemReporter = new FailFastProblemReporter();
 
+	// 观察者模式: 定义的一些事件发布监听 在XmlBeanDefinitionReader 中无实际作用
 	private ReaderEventListener eventListener = new EmptyReaderEventListener();
 
+	// 元数据对象， 在XmlBeanDefinitionReader 中无实际作用
 	private SourceExtractor sourceExtractor = new NullSourceExtractor();
 
+	// 解析自定义的标签解析位置: DefaultNamespaceHandlerResolver
 	@Nullable
 	private NamespaceHandlerResolver namespaceHandlerResolver;
 
+	// 加载文档的类
 	private DocumentLoader documentLoader = new DefaultDocumentLoader();
 
 	@Nullable
@@ -301,6 +307,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 
 
 	/**
+	 * xml加载bean的真实入口
 	 * Load bean definitions from the specified XML file.
 	 * @param resource the resource descriptor for the XML file
 	 * @return the number of bean definitions found
@@ -308,6 +315,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 	 */
 	@Override
 	public int loadBeanDefinitions(Resource resource) throws BeanDefinitionStoreException {
+		// EncodedResource: 对原始source进行特定编码解析,默认不指定encoding和charset
 		return loadBeanDefinitions(new EncodedResource(resource));
 	}
 
@@ -525,6 +533,7 @@ public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 
 	/**
 	 * Create the {@link XmlReaderContext} to pass over to the document reader.
+	 * xml读取的上下文信息,包含解析xml的错误打印辅助report，以及无用的事件监听和元数据抽取器，还包含了重要的自定义标签的解析器
 	 */
 	public XmlReaderContext createReaderContext(Resource resource) {
 		return new XmlReaderContext(resource, this.problemReporter, this.eventListener,

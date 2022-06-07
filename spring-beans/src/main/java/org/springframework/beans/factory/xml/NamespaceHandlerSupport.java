@@ -47,18 +47,21 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	/**
 	 * Stores the {@link BeanDefinitionParser} implementations keyed by the
 	 * local name of the {@link Element Elements} they handle.
+	 * 保存标签名-解析器对应关系的容器
 	 */
 	private final Map<String, BeanDefinitionParser> parsers = new HashMap<>();
 
 	/**
 	 * Stores the {@link BeanDefinitionDecorator} implementations keyed by the
 	 * local name of the {@link Element Elements} they handle.
+	 * 保存标签名-装饰器对应关系的容器
 	 */
 	private final Map<String, BeanDefinitionDecorator> decorators = new HashMap<>();
 
 	/**
 	 * Stores the {@link BeanDefinitionDecorator} implementations keyed by the local
 	 * name of the {@link Attr Attrs} they handle.
+	 * 保存属性名-装饰器对应关系的容器
 	 */
 	private final Map<String, BeanDefinitionDecorator> attributeDecorators = new HashMap<>();
 
@@ -70,7 +73,9 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	@Override
 	@Nullable
 	public BeanDefinition parse(Element element, ParserContext parserContext) {
+		// 获取 Parser
 		BeanDefinitionParser parser = findParserForElement(element, parserContext);
+		// 委托给 Parser解析
 		return (parser != null ? parser.parse(element, parserContext) : null);
 	}
 
@@ -80,7 +85,9 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	 */
 	@Nullable
 	private BeanDefinitionParser findParserForElement(Element element, ParserContext parserContext) {
+		// 这里是获取了去掉标签中去掉前缀后的名称 context:component-scan --> component-scan
 		String localName = parserContext.getDelegate().getLocalName(element);
+		// 从map中获取到对应的Parser
 		BeanDefinitionParser parser = this.parsers.get(localName);
 		if (parser == null) {
 			parserContext.getReaderContext().fatal(
@@ -133,6 +140,8 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	 * Subclasses can call this to register the supplied {@link BeanDefinitionParser} to
 	 * handle the specified element. The element name is the local (non-namespace qualified)
 	 * name.
+	 *
+	 * 注册parser，这里需要自定义标签子类来调用进行注册
 	 */
 	protected final void registerBeanDefinitionParser(String elementName, BeanDefinitionParser parser) {
 		this.parsers.put(elementName, parser);
@@ -142,6 +151,7 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	 * Subclasses can call this to register the supplied {@link BeanDefinitionDecorator} to
 	 * handle the specified element. The element name is the local (non-namespace qualified)
 	 * name.
+	 * 注册装饰器，这里需要自定义标签子类来调用进行注册
 	 */
 	protected final void registerBeanDefinitionDecorator(String elementName, BeanDefinitionDecorator dec) {
 		this.decorators.put(elementName, dec);
@@ -151,6 +161,7 @@ public abstract class NamespaceHandlerSupport implements NamespaceHandler {
 	 * Subclasses can call this to register the supplied {@link BeanDefinitionDecorator} to
 	 * handle the specified attribute. The attribute name is the local (non-namespace qualified)
 	 * name.
+	 * 注册属性装饰器，这里需要自定义标签子类来调用进行注册
 	 */
 	protected final void registerBeanDefinitionDecoratorForAttribute(String attrName, BeanDefinitionDecorator dec) {
 		this.attributeDecorators.put(attrName, dec);

@@ -250,6 +250,7 @@ public class BeanDefinitionParserDelegate {
 	 */
 	public BeanDefinitionParserDelegate(XmlReaderContext readerContext) {
 		Assert.notNull(readerContext, "XmlReaderContext must not be null");
+		// 主要使用readContext里面的DefaultNamespaceHandlerResolver解析自定义标签的解析类
 		this.readerContext = readerContext;
 	}
 
@@ -1443,10 +1444,12 @@ public class BeanDefinitionParserDelegate {
 	 */
 	@Nullable
 	public BeanDefinition parseCustomElement(Element ele, @Nullable BeanDefinition containingBd) {
+		// component-scan: http://www.springframework.org/schema/context
 		String namespaceUri = getNamespaceURI(ele);
 		if (namespaceUri == null) {
 			return null;
 		}
+		// SPI方式，根据名字获取相应的处理器，这里得到的是org.springframework.context.config.ContextNamespaceHandler
 		NamespaceHandler handler = this.readerContext.getNamespaceHandlerResolver().resolve(namespaceUri);
 		if (handler == null) {
 			error("Unable to locate Spring NamespaceHandler for XML schema namespace [" + namespaceUri + "]", ele);

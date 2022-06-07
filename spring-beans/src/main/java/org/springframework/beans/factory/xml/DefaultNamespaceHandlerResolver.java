@@ -41,6 +41,8 @@ import org.springframework.util.CollectionUtils;
  * {@code META-INF/spring.handlers}, but this can be changed using the
  * {@link #DefaultNamespaceHandlerResolver(ClassLoader, String)} constructor.
  *
+ *  从META-INF/spring.handlers中拿取所有的uri -> handler的配置信息，然后提供给外界查找相应uri对应的handler使用
+ *
  * @author Rob Harrop
  * @author Juergen Hoeller
  * @since 2.0
@@ -115,6 +117,7 @@ public class DefaultNamespaceHandlerResolver implements NamespaceHandlerResolver
 	@Override
 	@Nullable
 	public NamespaceHandler resolve(String namespaceUri) {
+		// 从所有的META-INF/spring.handlers配置文件中后去uri -》 handler的映射，这时可能Object里是handler的全限定名，需要加载类并初始化
 		Map<String, Object> handlerMappings = getHandlerMappings();
 		Object handlerOrClassName = handlerMappings.get(namespaceUri);
 		if (handlerOrClassName == null) {
@@ -124,14 +127,18 @@ public class DefaultNamespaceHandlerResolver implements NamespaceHandlerResolver
 			return (NamespaceHandler) handlerOrClassName;
 		}
 		else {
+			// 加载类并初始化
 			String className = (String) handlerOrClassName;
 			try {
+				// 根据名字获取类
 				Class<?> handlerClass = ClassUtils.forName(className, this.classLoader);
 				if (!NamespaceHandler.class.isAssignableFrom(handlerClass)) {
 					throw new FatalBeanException("Class [" + className + "] for namespace [" + namespaceUri +
 							"] does not implement the [" + NamespaceHandler.class.getName() + "] interface");
 				}
+				// 调用的无参构造器进行构造对象
 				NamespaceHandler namespaceHandler = (NamespaceHandler) BeanUtils.instantiateClass(handlerClass);
+				// 初始化操作
 				namespaceHandler.init();
 				handlerMappings.put(namespaceUri, namespaceHandler);
 				return namespaceHandler;
@@ -149,12 +156,16 @@ public class DefaultNamespaceHandlerResolver implements NamespaceHandlerResolver
 
 	/**
 	 * Load the specified NamespaceHandler mappings lazily.
+	 * 从META-INF/spring.handlers读取所有的配置信息
 	 */
 	private Map<String, Object> getHandlerMappings() {
 		Map<String, Object> handlerMappings = this.handlerMappings;
+		// 两次检查是否为null
 		if (handlerMappings == null) {
+			// 同步加锁
 			synchronized (this) {
 				handlerMappings = this.handlerMappings;
+				// 再次检查,确保没被初始化过
 				if (handlerMappings == null) {
 					if (logger.isTraceEnabled()) {
 						logger.trace("Loading NamespaceHandler mappings from [" + this.handlerMappingsLocation + "]");
@@ -166,6 +177,8 @@ public class DefaultNamespaceHandlerResolver implements NamespaceHandlerResolver
 							logger.trace("Loaded NamespaceHandler mappings: " + mappings);
 						}
 						handlerMappings = new ConcurrentHashMap<>(mappings.size());
+						// key: http\://www.springframework.org/schema/c   uri
+						// v:org.springframework.beans.factory.xml.SimpleConstructorNamespaceHandler  handler全限定名
 						CollectionUtils.mergePropertiesIntoMap(mappings, handlerMappings);
 						this.handlerMappings = handlerMappings;
 					}

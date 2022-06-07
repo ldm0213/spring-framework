@@ -32,6 +32,7 @@ import org.springframework.util.xml.XmlValidationModeDetector;
 
 /**
  * Spring's default {@link DocumentLoader} implementation.
+ * 主要用来加载XML为Document
  *
  * <p>Simply loads {@link Document documents} using the standard JAXP-configured
  * XML parser. If you want to change the {@link DocumentBuilder} that is used to

@@ -22,6 +22,8 @@ import org.springframework.lang.Nullable;
  * Used by the {@link org.springframework.beans.factory.xml.DefaultBeanDefinitionDocumentReader} to
  * locate a {@link NamespaceHandler} implementation for a particular namespace URI.
  *
+ * 自定义标签名字解析器,SPI机制,主要功能是从uri中得到相应的处理器
+ *
  * @author Rob Harrop
  * @since 2.0
  * @see NamespaceHandler

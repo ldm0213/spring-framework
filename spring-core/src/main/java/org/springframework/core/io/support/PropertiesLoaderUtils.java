@@ -180,6 +180,7 @@ public abstract class PropertiesLoaderUtils {
 			ResourceUtils.useCachesIfNecessary(con);
 			try (InputStream is = con.getInputStream()) {
 				if (resourceName.endsWith(XML_FILE_EXTENSION)) {
+					// 从xml读取配置
 					props.loadFromXML(is);
 				}
 				else {
