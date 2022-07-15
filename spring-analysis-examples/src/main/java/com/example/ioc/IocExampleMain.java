@@ -15,9 +15,11 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.util.Assert;
 
+import com.example.ioc.factory.Car;
 import com.example.ioc.pojo.DowJonesNewsListener;
 import com.example.ioc.pojo.DowJonesNewsPersister;
 import com.example.ioc.pojo.NewsProvider;
+import com.example.ioc.processor.BaseService;
 
 /**
  * @author lidongmeng
@@ -28,7 +30,27 @@ public class IocExampleMain {
 
 	public static void main(String[] args) {
 		// beanWrapper();
-		beanGet();
+		// beanGet();
+		// beanProcessorExample();
+		staticFatoryBeanExample();
+	}
+
+	public static void staticFatoryBeanExample() {
+		ApplicationContext ctx = new ClassPathXmlApplicationContext("beans.xml");
+		Car car1 = (Car) ctx.getBean("bmwCar");
+		System.out.println(car1);
+
+		car1 = (Car) ctx.getBean("audiCar");
+		System.out.println(car1);
+
+		car1 = (Car) ctx.getBean("car4");
+		System.out.println(car1);
+	}
+
+	public static void beanProcessorExample() {
+		ApplicationContext factory = new ClassPathXmlApplicationContext("beans.xml");
+		BaseService serviceObj = (BaseService) factory.getBean("iSomeService");
+		System.out.println(serviceObj.doSomething());
 	}
 
 	public static void beanGet() {

@@ -30,6 +30,8 @@ import org.springframework.util.StringUtils;
  *
  * <p>{@link Serializable} if subclasses and all attribute values are {@link Serializable}.
  *
+ * AttributeAccessorSupport是实现AttributeAccessor的抽象类,内部由LinkedHashMap实现
+ *
  * @author Rob Harrop
  * @author Juergen Hoeller
  * @since 2.0
@@ -37,7 +39,7 @@ import org.springframework.util.StringUtils;
 @SuppressWarnings("serial")
 public abstract class AttributeAccessorSupport implements AttributeAccessor, Serializable {
 
-	/** Map with String keys and Object values. */
+	/** 用一个linkedHashMap管理相应的属性名字到属性值之间的映射. */
 	private final Map<String, Object> attributes = new LinkedHashMap<>();
 
 
@@ -48,6 +50,7 @@ public abstract class AttributeAccessorSupport implements AttributeAccessor, Ser
 			this.attributes.put(name, value);
 		}
 		else {
+			// 设置属性值为null时候相当于删除该属性赋值
 			removeAttribute(name);
 		}
 	}

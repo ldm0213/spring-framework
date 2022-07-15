@@ -75,6 +75,13 @@ import org.springframework.util.StringUtils;
 import org.springframework.util.StringValueResolver;
 
 /**
+ *
+ * CommonAnnotationBeanPostProcessor它负责解析@Resource、@WebServiceRef、@EJB三个注解。
+ * 这三个注解都是定义在javax.*包下的注解，属于java中的注解,主要作用是收集生命周期相关的@PostConstruct、@PreDestroy注解信息封装成LifecycleMetadata
+ * 收集资源注入注解（我们主要关注@Resource）信息封装成InjectionMetadata
+ *
+ * 属于jdk的规范，对项目零入侵
+ *
  * {@link org.springframework.beans.factory.config.BeanPostProcessor} implementation
  * that supports common Java annotations out of the box, in particular the JSR-250
  * annotations in the {@code javax.annotation} package. These common Java
@@ -146,12 +153,15 @@ import org.springframework.util.StringValueResolver;
 public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBeanPostProcessor
 		implements InstantiationAwareBeanPostProcessor, BeanFactoryAware, Serializable {
 
+	// @WebServiceRef注解
 	@Nullable
 	private static final Class<? extends Annotation> webServiceRefClass;
 
+	// @EJB注解
 	@Nullable
 	private static final Class<? extends Annotation> ejbClass;
 
+	// @Resource注解
 	private static final Set<Class<? extends Annotation>> resourceAnnotationTypes = new LinkedHashSet<>(4);
 
 	static {
@@ -185,6 +195,8 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 	@Nullable
 	private transient StringValueResolver embeddedValueResolver;
 
+	// 主要作用是收集生命周期相关的@PostConstruct、@PreDestroy注解信息封装成LifecycleMetadata
+	// 收集资源注入注解（我们主要关注@Resource）信息封装成InjectionMetadata
 	private final transient Map<String, InjectionMetadata> injectionMetadataCache = new ConcurrentHashMap<>(256);
 
 
@@ -292,6 +304,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 	@Override
 	public void postProcessMergedBeanDefinition(RootBeanDefinition beanDefinition, Class<?> beanType, String beanName) {
 		super.postProcessMergedBeanDefinition(beanDefinition, beanType, beanName);
+		// 收集资源注入注解（我们主要关注@Resource）信息封装成InjectionMetadata
 		InjectionMetadata metadata = findResourceMetadata(beanName, beanType, null);
 		metadata.checkConfigMembers(beanDefinition);
 	}
@@ -353,6 +366,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 	}
 
 	private InjectionMetadata buildResourceMetadata(final Class<?> clazz) {
+		// 检测是否有resourceAnnotationTypes注解
 		if (!AnnotationUtils.isCandidateClass(clazz, resourceAnnotationTypes)) {
 			return InjectionMetadata.EMPTY;
 		}
@@ -363,6 +377,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 		do {
 			final List<InjectionMetadata.InjectedElement> currElements = new ArrayList<>();
 
+			// 循环处理每个属性: ejb,webServiceRef,resouce
 			ReflectionUtils.doWithLocalFields(targetClass, field -> {
 				if (webServiceRefClass != null && field.isAnnotationPresent(webServiceRefClass)) {
 					if (Modifier.isStatic(field.getModifiers())) {
@@ -386,11 +401,18 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 				}
 			});
 
+			// 循环处理每个方法，比如@Resource修饰的set方法啦（当然没规定要叫setXxx）
+			// 这里会循环当前类声明的方法和接口的默认（default）方法
 			ReflectionUtils.doWithLocalMethods(targetClass, method -> {
 				Method bridgedMethod = BridgeMethodResolver.findBridgedMethod(method);
 				if (!BridgeMethodResolver.isVisibilityBridgeMethodPair(method, bridgedMethod)) {
 					return;
 				}
+				// 由于这个工具类的循环是会循环到接口的默认方法的
+				// 这里这个判断是处理以下场景的：
+				// 接口有一个default方法，而当前类重写了这个方法;那如果子类重写的method循环的时候，这个if块能进去
+				// 接下来接口的相同签名的默认method进来时，ClassUtils.getMostSpecificMethod(method, clazz)会返回子类中重写的那个方法
+				// 这是就和当前方法（接口方法）不一致，就不会再进if块收集一遍了
 				if (method.equals(ClassUtils.getMostSpecificMethod(method, clazz))) {
 					if (webServiceRefClass != null && bridgedMethod.isAnnotationPresent(webServiceRefClass)) {
 						if (Modifier.isStatic(method.getModifiers())) {
@@ -428,9 +450,11 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 				}
 			});
 
+			// 父类的在前面
 			elements.addAll(0, currElements);
 			targetClass = targetClass.getSuperclass();
 		}
+		// 遍历父类
 		while (targetClass != null && targetClass != Object.class);
 
 		return InjectionMetadata.forElements(elements, clazz);
