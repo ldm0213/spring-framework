@@ -31,6 +31,9 @@ import org.springframework.util.ObjectUtils;
  * potentially even reconfiguring the parent name). Use {@code RootBeanDefinition} /
  * {@code ChildBeanDefinition} where parent/child relationships happen to be pre-determined.
  *
+ * GenericBeanDefinition的优势在于，它允许动态定义父依赖项，而不是一个以"硬编码"定义BeanDefinition的角色,
+ * bean的一般形式是以GenericBeanDefinition的标准形式存在的，在特定的时机，会将GenericBeanDefinition转成RootBeanDefinition
+ * 
  * @author Juergen Hoeller
  * @since 2.5
  * @see #setParentName

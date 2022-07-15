@@ -26,6 +26,9 @@ import org.springframework.lang.Nullable;
  * interface that exposes {@link org.springframework.core.type.AnnotationMetadata}
  * about its bean class - without requiring the class to be loaded yet.
  *
+ * AnnotatedBeanDefinition是BeanDefinition子接口之一，该接口扩展了BeanDefinition的功能，
+ * 其用来操作注解元数据。一般情况下，通过注解方式得到的Bean<@Component、@Bean>，其BeanDefinition类型都是该接口的实现类。
+ *
  * @author Juergen Hoeller
  * @since 2.5
  * @see AnnotatedGenericBeanDefinition

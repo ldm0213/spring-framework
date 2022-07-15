@@ -47,6 +47,13 @@ import org.springframework.util.StringUtils;
  * against {@link Qualifier qualifier annotations} on the field or parameter to be autowired.
  * Also supports suggested expression values through a {@link Value value} annotation.
  *
+ *  QualifierAnnotationAutowireCandidateResolver需要与AutowiredAnnotationBeanPostProcessor配合使用，
+ *  处理了 @Value 、@Autowire 、@Qualifier 三个注解:
+ *  1. @Value：getSuggestedValue 方法用于读取依赖注入值
+ *  2. @Autowire：isRequired 方法用于判断是否是必须依赖的值
+ *  3. @Qualifier：isAutowireCandidate添加过滤规则用于精确判断bean是否可以注入。
+ *  	将"候选 Bean 元信息" 和 "注入点 @Qualifier 注解" 中的属性进行匹配，如果匹配成功就可以注入，默认情况下匹配 bean 的名称。
+ *
  * <p>Also supports JSR-330's {@link javax.inject.Qualifier} annotation, if available.
  *
  * @author Mark Fisher
@@ -146,6 +153,7 @@ public class QualifierAnnotationAutowireCandidateResolver extends GenericTypeAwa
 	public boolean isAutowireCandidate(BeanDefinitionHolder bdHolder, DependencyDescriptor descriptor) {
 		boolean match = super.isAutowireCandidate(bdHolder, descriptor);
 		if (match) {
+			// 继续校验 @Qualifier 规则是否匹配成功
 			match = checkQualifiers(bdHolder, descriptor.getAnnotations());
 			if (match) {
 				MethodParameter methodParam = descriptor.getMethodParameter();
@@ -160,9 +168,7 @@ public class QualifierAnnotationAutowireCandidateResolver extends GenericTypeAwa
 		return match;
 	}
 
-	/**
-	 * Match the given qualifier annotations against the candidate bean definition.
-	 */
+	/** 将"候选 Bean 元信息" 和 "注入点 @Qualifier 注解" 中的属性进行匹配，如果匹配成功就可以注入，默认情况下匹配 bean 的名称。*/
 	protected boolean checkQualifiers(BeanDefinitionHolder bdHolder, Annotation[] annotationsToSearch) {
 		if (ObjectUtils.isEmpty(annotationsToSearch)) {
 			return true;

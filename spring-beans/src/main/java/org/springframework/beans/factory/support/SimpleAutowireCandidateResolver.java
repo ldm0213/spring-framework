@@ -39,6 +39,7 @@ public class SimpleAutowireCandidateResolver implements AutowireCandidateResolve
 
 	@Override
 	public boolean isAutowireCandidate(BeanDefinitionHolder bdHolder, DependencyDescriptor descriptor) {
+		// 直接判断 bd.autowireCandidate=true，默认为 true，也就是可以注入
 		return bdHolder.getBeanDefinition().isAutowireCandidate();
 	}
 

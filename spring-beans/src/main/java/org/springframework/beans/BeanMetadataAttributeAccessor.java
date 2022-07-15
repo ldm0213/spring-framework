@@ -24,6 +24,9 @@ import org.springframework.lang.Nullable;
  * holding attributes as {@link BeanMetadataAttribute} objects in order
  * to keep track of the definition source.
  *
+ * BeanMetadataAttributeAccessor主要增加了元数据的访问和存储配置,
+ * 以及通过BeanMetadataAttribute来包装属性名和属性值的，并存放入父类AttributeAccessorSupport的集合中去
+ *
  * @author Juergen Hoeller
  * @since 2.5
  */

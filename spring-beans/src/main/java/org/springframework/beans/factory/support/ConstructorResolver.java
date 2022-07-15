@@ -125,18 +125,28 @@ class ConstructorResolver {
 	 */
 	public BeanWrapper autowireConstructor(String beanName, RootBeanDefinition mbd,
 			@Nullable Constructor<?>[] chosenCtors, @Nullable Object[] explicitArgs) {
-
 		BeanWrapperImpl bw = new BeanWrapperImpl();
 		this.beanFactory.initBeanWrapper(bw);
 
+		// constructorToUse这个变量就是用来存储真正用来创建bean的构造器的, Spring会通过一个for
+		//   循环来遍历构造器, 每找到一个更加合适的构造器时, 都会覆盖这个变量的值
 		Constructor<?> constructorToUse = null;
+		// argsHolderToUse也是用来存储真正用来创建对象的参数的, argsToUse是由argsHolderToUse中得到的
 		ArgumentsHolder argsHolderToUse = null;
+		//  argsToUse用来存储真正用来创建对象的参数, 它有可能是我们传入的参数, 也有可能是我们解析出来的参数,
+		//   当Spring推断出来一个构造器的时候, 会在ConstructorArgumentValues, args中去查找是否程序员提供了
+		//   参数, 如果没有提供, 那么就会去bean工厂中查找, 没错, 就是通过getBean方法来获取对应的bean
 		Object[] argsToUse = null;
 
 		if (explicitArgs != null) {
+			//  explicitArgs是在getBean中传入的参数, 如果我们主动调用getBean并且又传入了参数的话,
+			//   那么表示程序员就是想利用该参数来作为构造器的参数, 所以Spring就将该参数赋值给argsToUse了,
+			//   对于这种情况下, Spring不会想着从缓存中读取之前创建对象时推断出来的参数和构造器, 因为谁也不
+			//   能保证下一次程员还是用这些参数
 			argsToUse = explicitArgs;
 		}
 		else {
+			// 缓存中读取之前保存的构造器和参数(前提时之前创建过该对象),
 			Object[] argsToResolve = null;
 			synchronized (mbd.constructorArgumentLock) {
 				constructorToUse = (Constructor<?>) mbd.resolvedConstructorOrFactoryMethod;
@@ -157,6 +167,11 @@ class ConstructorResolver {
 			// Take specified constructors, if any.
 			Constructor<?>[] candidates = chosenCtors;
 			if (candidates == null) {
+				// 如果在autowiredConstructor方法的调用时, Spring传入了构造方法数组, 即找到了@Autowired标注的构造方法,
+				// 	那么Spring肯定是从这个数组中选择构造方法, 如果没有, 则说明是四种情况的后三种情况了, 这个时候如果构造方法
+				// 	允许被访问非public的, 那么Spring就会拿到所有的构造方法, 否则仅仅拿到public方法,
+				//   isNonPublicAccessAllowed默认为true, 表示允许访问非public方法, 这个属性可以通过
+				//   beanDefinition.setNonPublicAccessAllowed方法来手动设置
 				Class<?> beanClass = mbd.getBeanClass();
 				try {
 					candidates = (mbd.isNonPublicAccessAllowed() ?
@@ -169,6 +184,10 @@ class ConstructorResolver {
 				}
 			}
 
+			// 如果只有一个构造器, 并且程序员没有主动提供参数的情况下, 并且这个构造器的参数是0个的话, 说明之后
+			//   一定是调用默认构造器的, 此时Spring就不再去判断到底使用哪个构造方法了, 而是直接采用这个默认构造方
+			//   法完成对象的创建, 同时将这个构造器和参数信息存入缓存, 以便之后再次调用的时候, 可以优先从缓存中读
+			//   取, 需要注意的是, Spring仅仅会在explicitArgs为null的时候才去缓存构造器和参数信息
 			if (candidates.length == 1 && explicitArgs == null && !mbd.hasConstructorArgumentValues()) {
 				Constructor<?> uniqueCandidate = candidates[0];
 				if (uniqueCandidate.getParameterCount() == 0) {
@@ -197,14 +216,15 @@ class ConstructorResolver {
 				minNrOfArgs = resolveConstructorArguments(beanName, mbd, bw, cargs, resolvedValues);
 			}
 
+			// 对所有的构造函数排序,按照访问限制修饰符进行排序public优先,按照方法参数进行排序,数量多的优先
 			AutowireUtils.sortConstructors(candidates);
+			// 算法minTypeDiffWeight的初始值
 			int minTypeDiffWeight = Integer.MAX_VALUE;
 			Set<Constructor<?>> ambiguousConstructors = null;
 			LinkedList<UnsatisfiedDependencyException> causes = null;
 
 			for (Constructor<?> candidate : candidates) {
 				int parameterCount = candidate.getParameterCount();
-
 				if (constructorToUse != null && argsToUse != null && argsToUse.length > parameterCount) {
 					// Already found greedy constructor that can be satisfied ->
 					// do not look any further, there are only less greedy constructors left.
@@ -214,6 +234,7 @@ class ConstructorResolver {
 					continue;
 				}
 
+				// 如果寻找构造注入的参数报错则跳过改构造函数
 				ArgumentsHolder argsHolder;
 				Class<?>[] paramTypes = candidate.getParameterTypes();
 				if (resolvedValues != null) {
@@ -248,6 +269,9 @@ class ConstructorResolver {
 					argsHolder = new ArgumentsHolder(explicitArgs);
 				}
 
+				// 设计一种算法计算typeDiffWeight的值,所有的构造函数中typeDiffWeight最小的值为被选中的构造函数
+				// 		- 如果typeDiffWeight都相同 则按照排序的规则选中第一个构造函数
+				// 		- 算法依据isLenientConstructorResolution区分严格模式还是宽松模式 默认宽松模式
 				int typeDiffWeight = (mbd.isLenientConstructorResolution() ?
 						argsHolder.getTypeDifferenceWeight(paramTypes) : argsHolder.getAssignabilityWeight(paramTypes));
 				// Choose this constructor if it represents the closest match.
@@ -292,6 +316,7 @@ class ConstructorResolver {
 		}
 
 		Assert.state(argsToUse != null, "Unresolved constructor arguments");
+		// 使用上述解析出来的constructor和args实例化bean
 		bw.setBeanInstance(instantiate(beanName, mbd, constructorToUse, argsToUse));
 		return bw;
 	}

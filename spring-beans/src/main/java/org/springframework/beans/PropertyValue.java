@@ -32,6 +32,12 @@ import org.springframework.util.ObjectUtils;
  * A {@link BeanWrapper} implementation should handle any necessary conversion,
  * as this object doesn't know anything about the objects it will be applied to.
  *
+ * 保存单个bean属性的信息和值的对象。在此处使用对象，而不是仅将所有属性存储在以属性名称为键的映射中，
+ * 可以提供更大的灵活性，并能够以优化的方式处理索引属性等。
+ * 该值不需要是最终所需的类型：BeanWrapper实现应该处理任何必要的转换，因为该对象不知道将应用到的对象的任何信息
+ *
+ * PropertyValue只是对BeanDefinition中一个属性进行的封装,并且提供了是否在自动注入时忽略不存在属性的功能和是否进行类型转换的控制
+ *
  * @author Rod Johnson
  * @author Rob Harrop
  * @author Juergen Hoeller
@@ -39,6 +45,7 @@ import org.springframework.util.ObjectUtils;
  * @see PropertyValues
  * @see BeanWrapper
  */
+// todo: propertyValue是对单个属性管理，为啥要继承BeanMetadataAttributeAccessor
 @SuppressWarnings("serial")
 public class PropertyValue extends BeanMetadataAttributeAccessor implements Serializable {
 
@@ -47,21 +54,23 @@ public class PropertyValue extends BeanMetadataAttributeAccessor implements Seri
 	@Nullable
 	private final Object value;
 
+	/** 当前属性在对bean进行属性注入时，如果对于属性在指定bean中不存在,是否要忽略 **/
 	private boolean optional = false;
 
+	/** 该字段负责类型转换的控制 **/
 	private boolean converted = false;
 
+	/** 封装转换后的值 **/
 	@Nullable
 	private Object convertedValue;
 
-	/** Package-visible field that indicates whether conversion is necessary. */
+	/** 是否需要进行类型转换 */
 	@Nullable
 	volatile Boolean conversionNecessary;
 
-	/** Package-visible field for caching the resolved property path tokens. */
+	/** 缓存解析后的属性名称，如 attr['info']['name'] */
 	@Nullable
 	transient volatile Object resolvedTokens;
-
 
 	/**
 	 * Create a new PropertyValue instance.

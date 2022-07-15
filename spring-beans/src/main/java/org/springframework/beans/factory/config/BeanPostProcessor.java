@@ -20,6 +20,8 @@ import org.springframework.beans.BeansException;
 import org.springframework.lang.Nullable;
 
 /**
+ * BeanPostProcessor接口的作用是在Spring完成实例化之后，对Spring容器实例化的Bean添加一些自定义的处理逻辑。
+ *
  * Factory hook that allows for custom modification of new bean instances &mdash;
  * for example, checking for marker interfaces or wrapping beans with proxies.
  *
@@ -63,6 +65,9 @@ public interface BeanPostProcessor {
 	 * or a custom init-method). The bean will already be populated with property values.
 	 * The returned bean instance may be a wrapper around the original.
 	 * <p>The default implementation returns the given {@code bean} as-is.
+	 *
+	 * 在bean实例的初始化方法回调之前调用,进行bean实例属性的填充
+	 *
 	 * @param bean the new bean instance
 	 * @param beanName the name of the bean
 	 * @return the bean instance to use, either the original or a wrapped one;
@@ -88,6 +93,10 @@ public interface BeanPostProcessor {
 	 * {@link InstantiationAwareBeanPostProcessor#postProcessBeforeInstantiation} method,
 	 * in contrast to all other {@code BeanPostProcessor} callbacks.
 	 * <p>The default implementation returns the given {@code bean} as-is.
+	 *
+	 *
+	 * 在bean实例的初始化方法回调之后调用,可以进行 bean 实例的代理封装
+	 *
 	 * @param bean the new bean instance
 	 * @param beanName the name of the bean
 	 * @return the bean instance to use, either the original or a wrapped one;

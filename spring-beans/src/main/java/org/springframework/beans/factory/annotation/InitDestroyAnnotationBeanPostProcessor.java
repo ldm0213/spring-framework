@@ -146,7 +146,9 @@ public class InitDestroyAnnotationBeanPostProcessor
 
 	@Override
 	public void postProcessMergedBeanDefinition(RootBeanDefinition beanDefinition, Class<?> beanType, String beanName) {
+		// 寻找生命周期元数据
 		LifecycleMetadata metadata = findLifecycleMetadata(beanType);
+		// 对收集到的声明周期方法做一下校验处理
 		metadata.checkConfigMembers(beanDefinition);
 	}
 
@@ -199,6 +201,7 @@ public class InitDestroyAnnotationBeanPostProcessor
 	private LifecycleMetadata findLifecycleMetadata(Class<?> clazz) {
 		if (this.lifecycleMetadataCache == null) {
 			// Happens after deserialization, during destruction...
+			// 没有开启缓存就直接拿构建生命周期元数据了
 			return buildLifecycleMetadata(clazz);
 		}
 		// Quick check on the concurrent map first, with minimal locking.
@@ -207,6 +210,7 @@ public class InitDestroyAnnotationBeanPostProcessor
 			synchronized (this.lifecycleMetadataCache) {
 				metadata = this.lifecycleMetadataCache.get(clazz);
 				if (metadata == null) {
+					// 构建生命周期PostConstruct、PreDestroy
 					metadata = buildLifecycleMetadata(clazz);
 					this.lifecycleMetadataCache.put(clazz, metadata);
 				}
@@ -216,7 +220,10 @@ public class InitDestroyAnnotationBeanPostProcessor
 		return metadata;
 	}
 
+
 	private LifecycleMetadata buildLifecycleMetadata(final Class<?> clazz) {
+		// 简单判断类上是不是一定没有initAnnotationType和destroyAnnotationType这两个注解修饰的方法
+		// 相当于快速失败；当前场景下，这两个注解实例化的时候已经初始化为PostConstruct和PreDestroy了
 		if (!AnnotationUtils.isCandidateClass(clazz, Arrays.asList(this.initAnnotationType, this.destroyAnnotationType))) {
 			return this.emptyLifecycleMetadata;
 		}
@@ -229,6 +236,7 @@ public class InitDestroyAnnotationBeanPostProcessor
 			final List<LifecycleElement> currInitMethods = new ArrayList<>();
 			final List<LifecycleElement> currDestroyMethods = new ArrayList<>();
 
+			// 使用反射，对当前class的每个方法进行检查，是否有init或者destory注解
 			ReflectionUtils.doWithLocalMethods(targetClass, method -> {
 				if (this.initAnnotationType != null && method.isAnnotationPresent(this.initAnnotationType)) {
 					LifecycleElement element = new LifecycleElement(method);
@@ -245,8 +253,12 @@ public class InitDestroyAnnotationBeanPostProcessor
 				}
 			});
 
+			// 当前类的初始化方法都是加入初始化方法容器的头部；当前类的销毁方法都是加入销毁方法容器的尾部
+			// 所以可以推断，初始化方法调用的时候是从父类->子类调用；而销毁方法从子类->父类调用。
+			// 即 bean初始化->调用父类初始化方法->调用子类初始化方法->...->调用子类销毁方法->调用父类销毁方法->销毁bean
 			initMethods.addAll(0, currInitMethods);
 			destroyMethods.addAll(currDestroyMethods);
+			// 继续查找父类
 			targetClass = targetClass.getSuperclass();
 		}
 		while (targetClass != null && targetClass != Object.class);
@@ -273,16 +285,18 @@ public class InitDestroyAnnotationBeanPostProcessor
 	 * Class representing information about annotated init and destroy methods.
 	 */
 	private class LifecycleMetadata {
-
+		// 目标类
 		private final Class<?> targetClass;
-
+		// 目标类上收集到的初始化方法
 		private final Collection<LifecycleElement> initMethods;
-
+		// 目标类上收集到的销毁方法
 		private final Collection<LifecycleElement> destroyMethods;
 
+		// 检查、校验后的初始化方法
 		@Nullable
 		private volatile Set<LifecycleElement> checkedInitMethods;
 
+		// 检查、校验后的销毁方法
 		@Nullable
 		private volatile Set<LifecycleElement> checkedDestroyMethods;
 
@@ -298,6 +312,7 @@ public class InitDestroyAnnotationBeanPostProcessor
 			Set<LifecycleElement> checkedInitMethods = new LinkedHashSet<>(this.initMethods.size());
 			for (LifecycleElement element : this.initMethods) {
 				String methodIdentifier = element.getIdentifier();
+				// 判断是否是标记为外部处理的初始化方法，如果是外部处理的方法的话，其实spring是不会管理这些方法的
 				if (!beanDefinition.isExternallyManagedInitMethod(methodIdentifier)) {
 					beanDefinition.registerExternallyManagedInitMethod(methodIdentifier);
 					checkedInitMethods.add(element);

@@ -25,6 +25,9 @@ import org.springframework.lang.Nullable;
  * Strategy interface for determining whether a specific bean definition
  * qualifies as an autowire candidate for a specific dependency.
  *
+ * AutowireCandidateResolver 用来判断一个给定的 bean 是否可以注入
+ * 最主要的方法是 isAutowireCandidate。简单来说 isAutowireCandidate 就根据 @Qualifier 添加过滤规则来判断 bean 是否合法。
+ *
  * @author Juergen Hoeller
  * @author Mark Fisher
  * @since 2.5
@@ -46,7 +49,9 @@ public interface AutowireCandidateResolver {
 	}
 
 	/**
-	 * Determine whether the given descriptor is effectively required.
+	 * 判断是否必须注入，如果是字段类型是 Optional 或有 @Null 注解时为 false
+	 *
+	 *  Determine whether the given descriptor is effectively required.
 	 * <p>The default implementation checks {@link DependencyDescriptor#isRequired()}.
 	 * @param descriptor the descriptor for the target method parameter or field
 	 * @return whether the descriptor is marked as required or possibly indicating
@@ -59,6 +64,8 @@ public interface AutowireCandidateResolver {
 	}
 
 	/**
+	 * 判断是否有 @Qualifier(Spring 或 JDK) 或自定义的注解
+	 *
 	 * Determine whether the given descriptor declares a qualifier beyond the type
 	 * (typically - but not necessarily - a specific kind of annotation).
 	 * <p>The default implementation returns {@code false}.

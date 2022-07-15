@@ -28,6 +28,10 @@ import org.springframework.lang.Nullable;
  * as no-ops, which will not change normal processing of each bean instantiated
  * by the container. Subclasses may override merely those methods that they are
  * actually interested in.
+ * 
+ * 接口适配器模式: 假如一个接口很庞大，我们每次写一个实现类都需要实现所有方法，然后只改写我们用到一两个方法，
+ * 那代码看起来也会很臃肿，于是就有了接口适配器。
+ * 使用抽象类实现接口的所有方法，抽象类实现的接口方法全部是空方法，当新需要一个子类时候，继承抽象类并且只重写特定的方法即可。
  *
  * <p>Note that this base class is only recommendable if you actually require
  * {@link InstantiationAwareBeanPostProcessor} functionality. If all you need

@@ -25,6 +25,7 @@ import org.springframework.lang.Nullable;
  * in a uniform manner.
  *
  * <p>The {@link ConfigurableBeanFactory} interface extends this interface.
+ * 提供单例bean注册的接口
  *
  * @author Juergen Hoeller
  * @since 2.0

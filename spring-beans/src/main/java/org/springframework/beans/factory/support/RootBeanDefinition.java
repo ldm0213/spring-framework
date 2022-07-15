@@ -46,6 +46,8 @@ import org.springframework.util.Assert;
  * GenericBeanDefinition has the advantage that it allows to dynamically define
  * parent dependencies, not 'hard-coding' the role as a root bean definition.
  *
+ * RootBeanDefinition仅作为运行时的BeanDefinition视图。如果需要编程定义BeanDefinition，那么推荐使用GenericBeanDefinition。
+ *
  * @author Rod Johnson
  * @author Juergen Hoeller
  * @see GenericBeanDefinition
@@ -54,9 +56,11 @@ import org.springframework.util.Assert;
 @SuppressWarnings("serial")
 public class RootBeanDefinition extends AbstractBeanDefinition {
 
+	/** 该对象用来存储Bean的name与alias的对应关系,提供BeanDefinition的访问方式**/
 	@Nullable
 	private BeanDefinitionHolder decoratedDefinition;
 
+	/** 开发者可以通过它来操作注解。如平时常见到的getAnnotation()、getAnnotations()、isAnnotationPresent()等 */
 	@Nullable
 	private AnnotatedElement qualifiedElement;
 
@@ -65,12 +69,14 @@ public class RootBeanDefinition extends AbstractBeanDefinition {
 
 	boolean allowCaching = true;
 
+	/** 工厂方法是否唯一 */
 	boolean isFactoryMethodUnique;
 
+	/** 与Java泛型相关的工具类 */
 	@Nullable
 	volatile ResolvableType targetType;
 
-	/** Package-visible field for caching the determined Class of a given bean definition. */
+	/** 当前类持有的Class对象. */
 	@Nullable
 	volatile Class<?> resolvedTargetType;
 

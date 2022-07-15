@@ -28,6 +28,8 @@ package org.springframework.beans.factory;
  * Refer to {@link org.springframework.context.support.ApplicationContextAwareProcessor}
  * for an example of processing specific {@code *Aware} interface callbacks.
  *
+ * spring提供了一个标记接口Aware，用来给用户标记当前bean是需要获取某些spring能提供的组件/信息的
+ *
  * @author Chris Beams
  * @author Juergen Hoeller
  * @since 3.1

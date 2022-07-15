@@ -31,6 +31,8 @@ import org.springframework.beans.BeansException;
  * to be fed as an API to other beans (through injection). As such, the
  * {@code getObject()} method has different exception handling behavior.
  *
+ * 它可以将创建对象的步骤封装到ObjectFactory中 交给自定义的Scope来选择是否需要创建对象来灵活的实现scope
+ *
  * @author Colin Sampaleanu
  * @since 1.0.2
  * @param <T> the object type

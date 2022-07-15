@@ -36,6 +36,8 @@ import org.springframework.util.StringUtils;
  * Allows simple manipulation of properties, and provides constructors
  * to support deep copy and construction from a Map.
  *
+ * 对属性进行管理，使用一个list来管理加入的<name-value>对，提供了增删查改，遍历属性的功能
+ *
  * @author Rod Johnson
  * @author Juergen Hoeller
  * @author Rob Harrop

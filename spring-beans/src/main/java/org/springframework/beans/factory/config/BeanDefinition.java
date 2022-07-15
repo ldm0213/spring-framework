@@ -31,6 +31,10 @@ import org.springframework.lang.Nullable;
  * {@link BeanFactoryPostProcessor} to introspect and modify property values
  * and other bean metadata.
  *
+ * Spring容器还要解决Bean的生命周期、销毁、初始化等等各种操作，
+ * 我们定义的关于Bean的生命周期、销毁、初始化等操作总得有一个对象来承载，
+ * 那么这个对象就是BeanDefinition
+ *
  * @author Juergen Hoeller
  * @author Rob Harrop
  * @since 19.03.2004
