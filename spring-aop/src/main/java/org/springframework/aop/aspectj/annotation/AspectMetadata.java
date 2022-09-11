@@ -50,18 +50,22 @@ public class AspectMetadata implements Serializable {
 	 * The name of this aspect as defined to Spring (the bean name) -
 	 * allows us to determine if two pieces of advice come from the
 	 * same aspect and hence their relative precedence.
+	 * 切面的名字 可能是类的全限定类名 也可能是Spring容器中bean的名字
 	 */
 	private final String aspectName;
 
 	/**
 	 * The aspect class, stored separately for re-resolution of the
 	 * corresponding AjType on deserialization.
+	 * 切面类 指带有切面注解的类
 	 */
 	private final Class<?> aspectClass;
 
 	/**
 	 * AspectJ reflection information (AspectJ 5 / Java 5 specific).
 	 * Re-resolved on deserialization since it isn't serializable itself.
+	 *
+	 * 类的类型 这个是AspectJ中定义的类  存储了aspectClass类的类相关信息;实现类为 AjTypeImpl
 	 */
 	private transient AjType<?> ajType;
 
@@ -69,6 +73,7 @@ public class AspectMetadata implements Serializable {
 	 * Spring AOP pointcut corresponding to the per clause of the
 	 * aspect. Will be the Pointcut.TRUE canonical instance in the
 	 * case of a singleton, otherwise an AspectJExpressionPointcut.
+	 * Spring AOP 中的切点表达式
 	 */
 	private final Pointcut perClausePointcut;
 

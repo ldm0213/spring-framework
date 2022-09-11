@@ -143,8 +143,9 @@ class ConfigurationClassBeanDefinitionReader {
 		for (BeanMethod beanMethod : configClass.getBeanMethods()) {
 			loadBeanDefinitionsForBeanMethod(beanMethod);
 		}
-
+		// import注解资源处理
 		loadBeanDefinitionsFromImportedResources(configClass.getImportedResources());
+		// Registrar处理
 		loadBeanDefinitionsFromRegistrars(configClass.getImportBeanDefinitionRegistrars());
 	}
 
@@ -379,6 +380,7 @@ class ConfigurationClassBeanDefinitionReader {
 		});
 	}
 
+	// 这里进行AspectJAutoProxyRegistrar的registerBeanDefinitions方法执行
 	private void loadBeanDefinitionsFromRegistrars(Map<ImportBeanDefinitionRegistrar, AnnotationMetadata> registrars) {
 		registrars.forEach((registrar, metadata) ->
 				registrar.registerBeanDefinitions(metadata, this.registry, this.importBeanNameGenerator));

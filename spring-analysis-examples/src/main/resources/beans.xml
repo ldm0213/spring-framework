@@ -2,10 +2,11 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:context="http://www.springframework.org/schema/context"
+	   xmlns:aop="http://www.springframework.org/schema/aop"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans
         http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
         http://www.springframework.org/schema/context
-        http://www.springframework.org/schema/context/spring-context-2.5.xsd">
+        http://www.springframework.org/schema/context/spring-context-2.5.xsd http://www.springframework.org/schema/aop https://www.springframework.org/schema/aop/spring-aop.xsd">
 
 <!--	<bean class="com.example.ioc.pojo.NewsProvider" id="newsProvider">-->
 <!--		<constructor-arg index="0">-->
@@ -20,55 +21,72 @@
 <!--	<bean id="newsPersister" class="com.example.ioc.pojo.DowJonesNewsPersister"> </bean>-->
 
 	<!-- scan all component as bean -->
-	<context:component-scan base-package="com.example.ioc"/>
+<!--	<context:component-scan base-package="com.example.ioc"/>-->
 
 	<!-- 注册 bean：被监控的实现类 -->
 <!--	<bean id="iSomeService" class="com.example.ioc.processor.ISomeService"></bean>-->
 <!--	<bean class="com.example.ioc.processor.ExampleBeanPostProcessor"></bean>-->
 
 	<!-- static factory bean-->
-	<bean id="bmwCar" class="com.example.ioc.factory.CarStaticFactory" factory-method="getCar">
-		<constructor-arg value="3"></constructor-arg>
-	</bean>
+<!--	<bean id="bmwCar" class="com.example.ioc.factory.CarStaticFactory" factory-method="getCar">-->
+<!--		<constructor-arg value="3"></constructor-arg>-->
+<!--	</bean>-->
 
-	<bean id="audiCar" class="com.example.ioc.factory.CarStaticFactory" factory-method="getCar">
-		<constructor-arg value="2"></constructor-arg>
-	</bean>
+<!--	<bean id="audiCar" class="com.example.ioc.factory.CarStaticFactory" factory-method="getCar">-->
+<!--		<constructor-arg value="2"></constructor-arg>-->
+<!--	</bean>-->
 
 
 	<!-- Instance Factory Method:1.must create a bean for the Instance Factroy First-->
-	<bean id="carFactory" class="com.example.ioc.factory.CarInstanceFactory">
-		<!-- map初始化 -->
-		<property name="map">
-			<map>
-				<entry key="4">
-					<bean class="com.example.ioc.factory.Car">
-						<property name="id" value="4"></property>
-						<property name="name" value="Honda"></property>
-						<property name="price" value="300000"></property>
-					</bean>
-				</entry>
+<!--	<bean id="carFactory" class="com.example.ioc.factory.CarInstanceFactory">-->
+<!--		&lt;!&ndash; map初始化 &ndash;&gt;-->
+<!--		<property name="map">-->
+<!--			<map>-->
+<!--				<entry key="4">-->
+<!--					<bean class="com.example.ioc.factory.Car">-->
+<!--						<property name="id" value="4"></property>-->
+<!--						<property name="name" value="Honda"></property>-->
+<!--						<property name="price" value="300000"></property>-->
+<!--					</bean>-->
+<!--				</entry>-->
 
-				<entry key="6">
-					<bean class="com.example.ioc.factory.Car">
-						<property name="id" value="6"></property>
-						<property name="name" value="ford"></property>
-						<property name="price" value="500000"></property>
-					</bean>
-				</entry>
-			</map>
-		</property>
-	</bean>
+<!--				<entry key="6">-->
+<!--					<bean class="com.example.ioc.factory.Car">-->
+<!--						<property name="id" value="6"></property>-->
+<!--						<property name="name" value="ford"></property>-->
+<!--						<property name="price" value="500000"></property>-->
+<!--					</bean>-->
+<!--				</entry>-->
+<!--			</map>-->
+<!--		</property>-->
+<!--	</bean>-->
 
 	<!-- 2.use Factory bean to get bean objectr
 	   factory-bean : the bean define above
 	   factory-method: method of get Bean Object
 	   constructor-arg: parameters of factory-method-->
-	<bean id="car4" factory-bean="carFactory" factory-method="getCar">
-		<constructor-arg value="4"></constructor-arg>
-	</bean>
+<!--	<bean id="car4" factory-bean="carFactory" factory-method="getCar">-->
+<!--		<constructor-arg value="4"></constructor-arg>-->
+<!--	</bean>-->
 
-	<bean id="car6" factory-bean="carFactory" factory-method="getCar">
-		<constructor-arg value="6"></constructor-arg>
-	</bean>
+<!--	<bean id="car6" factory-bean="carFactory" factory-method="getCar">-->
+<!--		<constructor-arg value="6"></constructor-arg>-->
+<!--	</bean>-->
+
+
+	<!-- aop -->
+	<bean id="HelloWorldService" class="com.example.aop.helloworld.HelloWorldServiceImpl"/>
+	<bean id="HelloWorldAspect" class="com.example.aop.helloworld.HelloWorldAspect"/>
+
+	<!-- 强制使用cglib代理，不设置默认使用JDK代理，jdk代理是基于接口的 -->
+	<aop:config proxy-target-class="true">
+		<!-- 定义切入点,配置在com.example下所有类调用前被拦截 -->
+		<aop:pointcut id="HelloWorldPointCut" expression="execution(* com.example.aop.helloworld.*ServiceImpl.*(..))"/>
+		<!-- 切面 -->
+		<aop:aspect ref="HelloWorldAspect">
+			<!-- 配置前置通知 -->
+			<aop:before method="beforeAdvice" pointcut-ref="HelloWorldPointCut"/>
+		</aop:aspect>
+	</aop:config>
+
 </beans>

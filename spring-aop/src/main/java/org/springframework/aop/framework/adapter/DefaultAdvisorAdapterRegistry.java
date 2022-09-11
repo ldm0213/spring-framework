@@ -33,6 +33,7 @@ import org.springframework.aop.support.DefaultPointcutAdvisor;
  * {@link org.springframework.aop.AfterReturningAdvice},
  * {@link org.springframework.aop.ThrowsAdvice}.
  *
+ * 将Advisor转换为Interceptor类型
  * @author Rod Johnson
  * @author Rob Harrop
  * @author Juergen Hoeller
@@ -40,12 +41,9 @@ import org.springframework.aop.support.DefaultPointcutAdvisor;
 @SuppressWarnings("serial")
 public class DefaultAdvisorAdapterRegistry implements AdvisorAdapterRegistry, Serializable {
 
+	/** 支持三种Adapter:前置通知适配器,后置返回通知适配器,后置异常通知适配器 **/
 	private final List<AdvisorAdapter> adapters = new ArrayList<>(3);
 
-
-	/**
-	 * Create a new DefaultAdvisorAdapterRegistry, registering well-known adapters.
-	 */
 	public DefaultAdvisorAdapterRegistry() {
 		registerAdvisorAdapter(new MethodBeforeAdviceAdapter());
 		registerAdvisorAdapter(new AfterReturningAdviceAdapter());

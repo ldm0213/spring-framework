@@ -506,7 +506,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		}
 
 		try {
-			// 给BeanPostProcessors一个机会，在我们的bean实例化之前返回一个代理对象，即完全不走spring的实例化逻辑
+			// Aop: 给BeanPostProcessors一个机会，在我们的bean实例化之前返回一个代理对象，即完全不走spring的实例化逻辑
 			// 也是个BeanPostProcessors的钩子，就是循环beanPostProcessors然后调用的逻辑
 			Object bean = resolveBeforeInstantiation(beanName, mbdToUse);
 			if (bean != null) {
@@ -1839,6 +1839,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		else {
 			// 调用aware方法 -- 需要注意的是这里只调用了一部分aware接口的方法
 			// 还有一部分XxxAware接口的调用是通过beanPostProcessor来实现的
+			// AnnotationAwareAspectJAutoProxyCreator类型实现了BeanFactoryAware
 			invokeAwareMethods(beanName, bean);
 		}
 

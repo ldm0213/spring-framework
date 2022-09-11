@@ -20,6 +20,7 @@ import org.springframework.lang.Nullable;
 
 /**
  * Minimal interface for exposing the target class behind a proxy.
+ * AopProxy代理的目标class
  *
  * <p>Implemented by AOP proxy objects and proxy factories
  * (via {@link org.springframework.aop.framework.Advised})

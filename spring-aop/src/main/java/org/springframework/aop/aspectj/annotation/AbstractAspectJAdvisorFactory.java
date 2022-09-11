@@ -100,6 +100,11 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 		return false;
 	}
 
+	/**
+	 * validate方法主要是校验带有Aspect注解的类
+	 * 		查看它的父类是否也有Aspect注解并且不是抽象类
+	 *      校验我们的切面类是否带有Aspect注解
+	 */
 	@Override
 	public void validate(Class<?> aspectClass) throws AopConfigException {
 		// If the parent has the annotation and isn't abstract it's an error
@@ -168,10 +173,11 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 	 */
 	protected static class AspectJAnnotation<A extends Annotation> {
 
+		// 切点表达式所在的属性" poincut会覆盖value的值，其实这里指的是通知类型注解中的属性
 		private static final String[] EXPRESSION_ATTRIBUTES = new String[] {"pointcut", "value"};
 
+		// 通知类型及其初始化
 		private static Map<Class<?>, AspectJAnnotationType> annotationTypeMap = new HashMap<>(8);
-
 		static {
 			annotationTypeMap.put(Pointcut.class, AspectJAnnotationType.AtPointcut);
 			annotationTypeMap.put(Around.class, AspectJAnnotationType.AtAround);
@@ -182,18 +188,19 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 		}
 
 		private final A annotation;
-
 		private final AspectJAnnotationType annotationType;
-
 		private final String pointcutExpression;
-
 		private final String argumentNames;
 
 		public AspectJAnnotation(A annotation) {
+			// 注解信息
 			this.annotation = annotation;
+			// 根据注解类型获取通知类型
 			this.annotationType = determineAnnotationType(annotation);
 			try {
+				// 从通知类型注解上面获取切点表达式
 				this.pointcutExpression = resolveExpression(annotation);
+				// 获取参数的名字
 				Object argNames = AnnotationUtils.getValue(annotation, "argNames");
 				this.argumentNames = (argNames instanceof String ? (String) argNames : "");
 			}
@@ -210,6 +217,7 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 			throw new IllegalStateException("Unknown annotation type: " + annotation);
 		}
 
+		// 从这个获取切点表达式的代码中我们可以看到 pointcut的属性会覆盖value的属性值
 		private String resolveExpression(A annotation) {
 			for (String attributeName : EXPRESSION_ATTRIBUTES) {
 				Object val = AnnotationUtils.getValue(annotation, attributeName);

@@ -95,7 +95,7 @@ public interface BeanPostProcessor {
 	 * <p>The default implementation returns the given {@code bean} as-is.
 	 *
 	 *
-	 * 在bean实例的初始化方法回调之后调用,可以进行 bean 实例的代理封装
+	 * 在bean实例的初始化方法回调之后调用,可以进行bean实例的代理封装
 	 *
 	 * @param bean the new bean instance
 	 * @param beanName the name of the bean

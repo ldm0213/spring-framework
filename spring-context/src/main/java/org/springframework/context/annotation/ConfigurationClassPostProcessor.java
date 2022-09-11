@@ -78,6 +78,15 @@ import org.springframework.util.ClassUtils;
  * their corresponding bean definitions registered before any other
  * {@code BeanFactoryPostProcessor} executes.
  *
+ * ConfigurationClassPostProcessor主要做以下工作:
+ * 1. 对于候选配置类使用CGLIB Enhancer增强
+ * 2. 解析处理@PropertySource注解
+ * 3. 解析@ComponentScan注解,扫描@Configuration、@Service、@Controller、@Repository和@Component注解并注册BeanDefinition
+ * 4. 解析@Import注解,然后进行实例化,并执行ImportBeanDefinitionRegistrar的registerBeanDefinitions逻辑,或者ImportSelector的selectImports逻辑
+ * 5. 解析@ImportResource注解,并加载相关配置信息
+ * 6. 解析方法级别@Bean注解并将返回值注册成BeanDefinition
+ * 7. 注册ImportRegistry到容器中,用于处理ImportAware
+ *
  * @author Chris Beams
  * @author Juergen Hoeller
  * @author Phillip Webb

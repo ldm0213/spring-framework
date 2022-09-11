@@ -744,6 +744,11 @@ public abstract class ClassUtils {
 	 * Return all interfaces that the given class implements as a Set,
 	 * including ones implemented by superclasses.
 	 * <p>If the class itself is an interface, it gets returned as sole interface.
+	 *
+	 * 获取类上的所有的接口是通过调用ClassUtils.getAllInterfaces来获取的;
+	 * 这个方法可以获取类上的所有接口，包括父类上的接口，但是它不能获取接口的接口;
+	 * 		类A继承了类B，类B实现了接口C，接口C继承了接口D，如果传入的参数是类A，这里是可以获取到接口C，但是获取不到接口D的
+	 *
 	 * @param clazz the class to analyze for interfaces
 	 * @param classLoader the ClassLoader that the interfaces need to be visible in
 	 * (may be {@code null} when accepting all declared interfaces)

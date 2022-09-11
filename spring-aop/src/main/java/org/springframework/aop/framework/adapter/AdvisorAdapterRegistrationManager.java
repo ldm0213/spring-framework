@@ -27,6 +27,10 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
  * in application context along with "non-native" Spring AdvisorAdapters
  * that need to be "recognized" by Spring's AOP framework.
  *
+ * 在bean对象初始化后注册通知适配器，AdvisorAdapterRegistrationManager是BeanPostProcessor的一个实现类，
+ * 其主要作用为容器中管理的Bean注册一个面向切面编程的通知适配器，以便在Spring容器为所管理的Bean进行面向切面编程时提供方便
+ *
+ *
  * @author Dmitriy Kopylenko
  * @author Juergen Hoeller
  * @since 27.02.2004

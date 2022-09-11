@@ -33,6 +33,7 @@ import org.springframework.util.Assert;
 /**
  * Helper for retrieving standard Spring Advisors from a BeanFactory,
  * for use with auto-proxying.
+ * BeanFactoryAdvisorRetrievalHelper是Spring AOP框架提供的一个工具类，从整个IoC容器范围获取所有的Spring Advisor bean组件，用于辅助自动代理机制
  *
  * @author Juergen Hoeller
  * @since 2.0.2
@@ -44,6 +45,10 @@ public class BeanFactoryAdvisorRetrievalHelper {
 
 	private final ConfigurableListableBeanFactory beanFactory;
 
+	/**
+	 * 缓存机制,当前工具类的方法findAdvisorBeans可能被调用多次，首次调用时会发现所有的符合条件的 bean 的名称,
+	 * 这些名称会缓存在这里供后续调用直接使用而不是再次从容器获取
+	 */
 	@Nullable
 	private volatile String[] cachedAdvisorBeanNames;
 
@@ -57,10 +62,12 @@ public class BeanFactoryAdvisorRetrievalHelper {
 		this.beanFactory = beanFactory;
 	}
 
-
 	/**
 	 * Find all eligible Advisor beans in the current bean factory,
 	 * ignoring FactoryBeans and excluding beans that are currently in creation.
+	 *
+	 * 寻找所有Advisor.class的bean名字，如果存在就放入缓存，并进行创建，然后返回
+	 *
 	 * @return the list of {@link org.springframework.aop.Advisor} beans
 	 * @see #isEligibleBean
 	 */
@@ -68,8 +75,7 @@ public class BeanFactoryAdvisorRetrievalHelper {
 		// Determine list of advisor bean names, if not cached already.
 		String[] advisorNames = this.cachedAdvisorBeanNames;
 		if (advisorNames == null) {
-			// Do not initialize FactoryBeans here: We need to leave all regular beans
-			// uninitialized to let the auto-proxy creator apply to them!
+			// 获取当前BeanFactory中所有实现了Advisor接口的bean的名称
 			advisorNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors(
 					this.beanFactory, Advisor.class, true, false);
 			this.cachedAdvisorBeanNames = advisorNames;
@@ -80,6 +86,7 @@ public class BeanFactoryAdvisorRetrievalHelper {
 
 		List<Advisor> advisors = new ArrayList<>();
 		for (String name : advisorNames) {
+			// isEligibleBean()是提供的一个hook方法，用于子类对Advisor进行过滤，这里默认返回值都是true
 			if (isEligibleBean(name)) {
 				if (this.beanFactory.isCurrentlyInCreation(name)) {
 					if (logger.isTraceEnabled()) {
@@ -88,9 +95,12 @@ public class BeanFactoryAdvisorRetrievalHelper {
 				}
 				else {
 					try {
+						// 将当前bean添加到结果中
 						advisors.add(this.beanFactory.getBean(name, Advisor.class));
 					}
 					catch (BeanCreationException ex) {
+						// 获取Advisor bean实例过程中如果遇到BeanCreationException异常则跳过该bean，继续；
+						// 如果是其他异常，则继续抛出异常
 						Throwable rootCause = ex.getMostSpecificCause();
 						if (rootCause instanceof BeanCurrentlyInCreationException) {
 							BeanCreationException bce = (BeanCreationException) rootCause;

@@ -51,7 +51,13 @@ import org.springframework.beans.BeansException;
  * {@code PriorityOrdered} or {@code Ordered} interface will be ignored for
  * programmatically registered post-processors. Furthermore, the
  * {@link org.springframework.core.annotation.Order @Order} annotation is not
- * taken into account for {@code BeanFactoryPostProcessor} beans.
+ * taken into account for {@code BeanFactoryPostProcessor} beans
+ *
+ *
+ * 实现该接口，可以在spring的bean创建之前，修改bean的定义属性。
+ * Spring允许BeanFactoryPostProcessor在容器实例化任何其它bean之前读取配置元数据，
+ * 并可以根据需要进行修改，例如可以把bean的scope从singleton改为prototype，也可以把property的值给修改掉。
+ * 可以同时配置多个BeanFactoryPostProcessor，并通过设置'order'属性来控制各个BeanFactoryPostProcessor的执行次序。
  *
  * @author Juergen Hoeller
  * @author Sam Brannen

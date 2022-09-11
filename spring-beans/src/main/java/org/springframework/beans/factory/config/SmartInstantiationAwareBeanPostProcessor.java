@@ -40,6 +40,9 @@ public interface SmartInstantiationAwareBeanPostProcessor extends InstantiationA
 	/**
 	 * Predict the type of the bean to be eventually returned from this
 	 * processor's {@link #postProcessBeforeInstantiation} callback.
+	 *
+	 * 预测Bean的类型，返回第一个预测成功的Class类型，如果不能预测返回null
+	 *
 	 * <p>The default implementation returns {@code null}.
 	 * @param beanClass the raw class of the bean
 	 * @param beanName the name of the bean
@@ -54,6 +57,11 @@ public interface SmartInstantiationAwareBeanPostProcessor extends InstantiationA
 	/**
 	 * Determine the candidate constructors to use for the given bean.
 	 * <p>The default implementation returns {@code null}.
+	 *
+	 * 选择合适的构造器，比如目标对象有多个构造器，在这里可以进行一些定制化，选择合适的构造器
+	 * 		beanClass参数表示目标实例的类型，beanName是目标实例在Spring容器中的name
+	 * 		返回值是个构造器数组，如果返回null，会执行下一个PostProcessor的determineCandidateConstructors方法；否则选取该PostProcessor选择的构造器
+	 *
 	 * @param beanClass the raw class of the bean (never {@code null})
 	 * @param beanName the name of the bean
 	 * @return the candidate constructors, or {@code null} if none specified
@@ -80,6 +88,9 @@ public interface SmartInstantiationAwareBeanPostProcessor extends InstantiationA
 	 * return the raw bean instance from those subsequent callbacks (if the wrapper
 	 * for the affected bean has been built for a call to this method already,
 	 * it will be exposes as final bean reference by default).
+	 *
+	 * 获得提前暴露的bean引用。主要用于解决循环引用的问题，只有单例对象才会调用此方法
+	 *
 	 * <p>The default implementation returns the given {@code bean} as-is.
 	 * @param bean the raw bean instance
 	 * @param beanName the name of the bean

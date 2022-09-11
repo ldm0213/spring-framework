@@ -47,25 +47,37 @@ import org.springframework.lang.Nullable;
 @SuppressWarnings("serial")
 public class DefaultAdvisorChainFactory implements AdvisorChainFactory, Serializable {
 
+	/**
+	 *
+	 * @param config 一个是Advised的实例
+	 * @param method 一个是目标方法
+	 * @param targetClass 一个是目标类可能为null
+	 * @return
+	 */
 	@Override
 	public List<Object> getInterceptorsAndDynamicInterceptionAdvice(
 			Advised config, Method method, @Nullable Class<?> targetClass) {
-
-		// This is somewhat tricky... We have to process introductions first,
-		// but we need to preserve order in the ultimate list.
+		// 这里用了一个单例模式，获取DefaultAdvisorAdapterRegistry实例
+		// AdvisorAdapterRegistry这个类的主要作用是将Advice适配为Advisor，将Advisor适配为对应的MethodInterceptor
 		AdvisorAdapterRegistry registry = GlobalAdvisorAdapterRegistry.getInstance();
+		// 创建一个初始大小为通知个数的集合
 		Advisor[] advisors = config.getAdvisors();
 		List<Object> interceptorList = new ArrayList<>(advisors.length);
+		// 目标类获取: 如果目标类为null的话，则从方法签名中获取目标类
 		Class<?> actualClass = (targetClass != null ? targetClass : method.getDeclaringClass());
+		// 判断目标类是否存在引介增强,通常为false
 		Boolean hasIntroductions = null;
 
+		// 循环目标方法匹配的通知
 		for (Advisor advisor : advisors) {
+			// 如果是PointcutAdvisor类型的实例
 			if (advisor instanceof PointcutAdvisor) {
-				// Add it conditionally.
 				PointcutAdvisor pointcutAdvisor = (PointcutAdvisor) advisor;
+				// 如果提前进行过切点的匹配了或者当前的Advisor适用于目标类
 				if (config.isPreFiltered() || pointcutAdvisor.getPointcut().getClassFilter().matches(actualClass)) {
 					MethodMatcher mm = pointcutAdvisor.getPointcut().getMethodMatcher();
 					boolean match;
+					// 检测Advisor是否适用于此目标方法
 					if (mm instanceof IntroductionAwareMethodMatcher) {
 						if (hasIntroductions == null) {
 							hasIntroductions = hasMatchingIntroductions(advisors, actualClass);
@@ -76,10 +88,12 @@ public class DefaultAdvisorChainFactory implements AdvisorChainFactory, Serializ
 						match = mm.matches(method, actualClass);
 					}
 					if (match) {
+						// 将Advisor适配为MethodInterceptor
 						MethodInterceptor[] interceptors = registry.getInterceptors(advisor);
+						// MethodMatcher中的切点分为两种:一个是静态的一种是动态的
+						// 如果isRuntime返回true则是动态的切入点,每次方法的调用都要去进行匹配
+						// 而静态切入点则回缓存之前的匹配结果值
 						if (mm.isRuntime()) {
-							// Creating a new object instance in the getInterceptors() method
-							// isn't a problem as we normally cache created chains.
 							for (MethodInterceptor interceptor : interceptors) {
 								interceptorList.add(new InterceptorAndDynamicMethodMatcher(interceptor, mm));
 							}
@@ -91,13 +105,17 @@ public class DefaultAdvisorChainFactory implements AdvisorChainFactory, Serializ
 				}
 			}
 			else if (advisor instanceof IntroductionAdvisor) {
+				// 如果是引介增强
 				IntroductionAdvisor ia = (IntroductionAdvisor) advisor;
+				// 匹配当前class
 				if (config.isPreFiltered() || ia.getClassFilter().matches(actualClass)) {
+					// 将Advisor转换为Interceptor
 					Interceptor[] interceptors = registry.getInterceptors(advisor);
 					interceptorList.addAll(Arrays.asList(interceptors));
 				}
 			}
 			else {
+				// 将Advisor转换为Interceptor
 				Interceptor[] interceptors = registry.getInterceptors(advisor);
 				interceptorList.addAll(Arrays.asList(interceptors));
 			}

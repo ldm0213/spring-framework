@@ -468,6 +468,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		}
 	}
 
+	/** 获取容器中符合type的bean名称开始 **/
 	@Override
 	public String[] getBeanNamesForType(ResolvableType type) {
 		return getBeanNamesForType(type, true, true);
@@ -591,6 +592,8 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 		return StringUtils.toStringArray(result);
 	}
+	/** 获取容器中符合type的bean名称结束 **/
+
 
 	private boolean isSingleton(String beanName, RootBeanDefinition mbd, @Nullable BeanDefinitionHolder dbd) {
 		return (dbd != null ? mbd.isSingleton() : isSingleton(beanName));

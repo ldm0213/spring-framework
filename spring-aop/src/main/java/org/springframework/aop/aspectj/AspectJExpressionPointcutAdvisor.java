@@ -24,6 +24,7 @@ import org.springframework.lang.Nullable;
 
 /**
  * Spring AOP Advisor that can be used for any AspectJ pointcut expression.
+ * Spring解析aop命名空间时生成的 Advisor，这个类是由ConfigBeanDefinitionParser解析得到的；
  *
  * @author Rob Harrop
  * @since 2.0

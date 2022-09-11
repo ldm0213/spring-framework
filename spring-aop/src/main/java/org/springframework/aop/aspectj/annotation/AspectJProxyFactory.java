@@ -52,6 +52,7 @@ public class AspectJProxyFactory extends ProxyCreatorSupport {
 	/** Cache for singleton aspect instances. */
 	private static final Map<Class<?>, Object> aspectCache = new ConcurrentHashMap<>();
 
+	// 创建Advisor的工厂
 	private final AspectJAdvisorFactory aspectFactory = new ReflectiveAspectJAdvisorFactory();
 
 
@@ -67,6 +68,7 @@ public class AspectJProxyFactory extends ProxyCreatorSupport {
 	 * @param target the target object to be proxied
 	 */
 	public AspectJProxyFactory(Object target) {
+		// 检测目标对象不能为null，设置目标对象的所有的接口，设置目标对象。
 		Assert.notNull(target, "Target object must not be null");
 		setInterfaces(ClassUtils.getAllInterfaces(target));
 		setTarget(target);
@@ -86,6 +88,7 @@ public class AspectJProxyFactory extends ProxyCreatorSupport {
 	 * supplied must be a singleton aspect. True singleton lifecycle is not honoured when
 	 * using this method - the caller is responsible for managing the lifecycle of any
 	 * aspects added in this way.
+	 * 添加切面: 传入实例对象的方法会将实例对象封装为一个单例不再进行切面对象的场景
 	 * @param aspectInstance the AspectJ aspect instance
 	 */
 	public void addAspect(Object aspectInstance) {
@@ -96,17 +99,21 @@ public class AspectJProxyFactory extends ProxyCreatorSupport {
 			throw new IllegalArgumentException(
 					"Aspect class [" + aspectClass.getName() + "] does not define a singleton aspect");
 		}
+		// 添加Advisor
 		addAdvisorsFromAspectInstanceFactory(
 				new SingletonMetadataAwareAspectInstanceFactory(aspectInstance, aspectName));
 	}
 
 	/**
 	 * Add an aspect of the supplied type to the end of the advice chain.
+	 * 添加切面: 传入切面类对象的方法需要创建切面对象实例
 	 * @param aspectClass the AspectJ aspect class
 	 */
 	public void addAspect(Class<?> aspectClass) {
 		String aspectName = aspectClass.getName();
+		// 根据切面对象创建切面元数据类
 		AspectMetadata am = createAspectMetadata(aspectClass, aspectName);
+		// 根据传入的切面类创建、切面实例, 将切面实例封装为切面实例工厂
 		MetadataAwareAspectInstanceFactory instanceFactory = createAspectInstanceFactory(am, aspectClass, aspectName);
 		addAdvisorsFromAspectInstanceFactory(instanceFactory);
 	}
@@ -115,15 +122,21 @@ public class AspectJProxyFactory extends ProxyCreatorSupport {
 	/**
 	 * Add all {@link Advisor Advisors} from the supplied {@link MetadataAwareAspectInstanceFactory}
 	 * to the current chain. Exposes any special purpose {@link Advisor Advisors} if needed.
+	 *
+	 * @instanceFactory 包含了@Aspect注解的类元信息
 	 * @see AspectJProxyUtils#makeAdvisorChainAspectJCapableIfNecessary(List)
 	 */
 	private void addAdvisorsFromAspectInstanceFactory(MetadataAwareAspectInstanceFactory instanceFactory) {
+		// 使用ReflectiveAspectJAdvisorFactory从MetadataAwareAspectInstanceFactory中获取Advisor
 		List<Advisor> advisors = this.aspectFactory.getAdvisors(instanceFactory);
 		Class<?> targetClass = getTargetClass();
 		Assert.state(targetClass != null, "Unresolvable target class");
+		// 从中挑出适用于目标对象的Advisor
 		advisors = AopUtils.findAdvisorsThatCanApply(advisors, targetClass);
 		AspectJProxyUtils.makeAdvisorChainAspectJCapableIfNecessary(advisors);
+		// 对获取到的Advisor进行排序
 		AnnotationAwareOrderComparator.sort(advisors);
+		// 将获取到Advisor添加到advisors集合中
 		addAdvisors(advisors);
 	}
 
@@ -132,6 +145,8 @@ public class AspectJProxyFactory extends ProxyCreatorSupport {
 	 */
 	private AspectMetadata createAspectMetadata(Class<?> aspectClass, String aspectName) {
 		AspectMetadata am = new AspectMetadata(aspectClass, aspectName);
+		// 如果切面类不是切面则抛出异常，这里判断我们传入的切面类是不是切面很简单，即判断切面类上是否存在@Aspect注解。
+		// -- 如果我们传入的切面类上没有@Aspect注解的话，则去查找它的父类上，是否存在@Aspect注解。一直查到父类为Object。如果一直没有找到带有@Aspect注解的类，则会抛出异常。
 		if (!am.getAjType().isAspect()) {
 			throw new IllegalArgumentException("Class [" + aspectClass.getName() + "] is not a valid aspect type");
 		}
@@ -142,6 +157,8 @@ public class AspectJProxyFactory extends ProxyCreatorSupport {
 	 * Create a {@link MetadataAwareAspectInstanceFactory} for the supplied aspect type. If the aspect type
 	 * has no per clause, then a {@link SingletonMetadataAwareAspectInstanceFactory} is returned, otherwise
 	 * a {@link PrototypeAspectInstanceFactory} is returned.
+	 *
+	 * 创建了一个MetadataAwareAspectInstanceFactory 的子类。用来组合切面实例对象和切面元数据
 	 */
 	private MetadataAwareAspectInstanceFactory createAspectInstanceFactory(
 			AspectMetadata am, Class<?> aspectClass, String aspectName) {

@@ -44,6 +44,7 @@ public class AspectJAfterAdvice extends AbstractAspectJAdvice
 	@Override
 	public Object invoke(MethodInvocation mi) throws Throwable {
 		try {
+			// mi是ReflectiveMethodInvocation，触发继续往下执行完整的拦截链
 			return mi.proceed();
 		}
 		finally {

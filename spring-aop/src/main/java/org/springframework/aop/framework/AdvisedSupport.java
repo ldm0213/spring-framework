@@ -54,6 +54,9 @@ import org.springframework.util.CollectionUtils;
  * <p>This class is serializable; subclasses need not be.
  * This class is used to hold snapshots of proxies.
  *
+ * Advised中定义了一些方法，而在ProxyConfig中是对这些接口方法的一个实现，
+ * 但是Advised和ProxyConfig却是互相独立的两个类。
+ * SpringAOP通过AdvisedSupport将他们适配到了一起.
  * @author Rod Johnson
  * @author Juergen Hoeller
  * @see org.springframework.aop.framework.AopProxy
@@ -471,6 +474,8 @@ public class AdvisedSupport extends ProxyConfig implements Advised {
 	/**
 	 * Determine a list of {@link org.aopalliance.intercept.MethodInterceptor} objects
 	 * for the given method, based on this configuration.
+	 *
+	 * 为某个方法获取拦截器链，在取得拦截器链的时候，为提高取得拦截器链的效率，还为这个拦截器链设置了缓存
 	 * @param method the proxied method
 	 * @param targetClass the target class
 	 * @return a List of MethodInterceptors (may also include InterceptorAndDynamicMethodMatchers)
@@ -479,6 +484,7 @@ public class AdvisedSupport extends ProxyConfig implements Advised {
 		MethodCacheKey cacheKey = new MethodCacheKey(method);
 		List<Object> cached = this.methodCache.get(cacheKey);
 		if (cached == null) {
+			// 获取拦截器链
 			cached = this.advisorChainFactory.getInterceptorsAndDynamicInterceptionAdvice(
 					this, method, targetClass);
 			this.methodCache.put(cacheKey, cached);

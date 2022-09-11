@@ -21,6 +21,9 @@ import org.aopalliance.aop.Advice;
 /**
  * Common marker interface for after advice,
  * such as {@link AfterReturningAdvice} and {@link ThrowsAdvice}.
+ * 在切面方法执行后，这里的执行后指不向外抛异常
+ * 	AspectJAfterAdvice
+ * 	AspectJAfterReturningAdvice
  *
  * @author Juergen Hoeller
  * @since 2.0.3

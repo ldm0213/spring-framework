@@ -57,6 +57,9 @@ public interface InstantiationAwareBeanPostProcessor extends BeanPostProcessor {
 	 * <p>This callback will be applied to bean definitions with their bean class,
 	 * as well as to factory-method definitions in which case the returned bean type
 	 * will be passed in here.
+	 *
+	 * 作用在目标对象被实例化之前调用的方法，可以返回目标实例的一个代理用来代替目标实例
+	 *
 	 * <p>Post-processors may implement the extended
 	 * {@link SmartInstantiationAwareBeanPostProcessor} interface in order
 	 * to predict the type of the bean object that they are going to return here.
@@ -80,6 +83,9 @@ public interface InstantiationAwareBeanPostProcessor extends BeanPostProcessor {
 	 * but before Spring property population (from explicit properties or autowiring) occurs.
 	 * <p>This is the ideal callback for performing custom field injection on the given bean
 	 * instance, right before Spring's autowiring kicks in.
+	 *
+	 *  作用在目标对象被实例化之后并且在属性值被populate之前调用
+	 *
 	 * <p>The default implementation returns {@code true}.
 	 * @param bean the bean instance created, with properties not having been set yet
 	 * @param beanName the name of the bean
@@ -126,6 +132,15 @@ public interface InstantiationAwareBeanPostProcessor extends BeanPostProcessor {
 	 * <p>Also allows for replacing the property values to apply, typically through
 	 * creating a new MutablePropertyValues instance based on the original PropertyValues,
 	 * adding or removing specific values.
+	 *
+	 * 作用在属性中被设置到目标实例之前调用，可以修改属性的设置
+	 *	pvs参数表示参数属性值(从BeanDefinition中获取)
+	 *  pds代表参数的描述信息(比如参数名，类型等描述信息)
+	 *  bean参数是目标实例
+	 *  beanName是目标实例在Spring容器中的name
+	 * 返回值是PropertyValues，可以使用一个全新的PropertyValues代替原先的PropertyValues用来覆盖属性设置或者直接在参数pvs上修改。
+	 * 如果返回值是null，那么会忽略属性设置这个过程(所有属性不论使用什么注解，最后都是null)
+	 *
 	 * <p>The default implementation returns the given {@code pvs} as-is.
 	 * @param pvs the property values that the factory is about to apply (never {@code null})
 	 * @param pds the relevant property descriptors for the target bean (with ignored

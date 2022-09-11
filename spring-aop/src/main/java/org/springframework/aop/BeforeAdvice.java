@@ -20,6 +20,8 @@ import org.aopalliance.aop.Advice;
 
 /**
  * Common marker interface for before advice, such as {@link MethodBeforeAdvice}.
+ * 在目标方法之前执行，主要实现有：
+ * 	AspectJMethodBeforeAdvice
  *
  * <p>Spring supports only method before advice. Although this is unlikely to change,
  * this API is designed to allow field advice in future if desired.

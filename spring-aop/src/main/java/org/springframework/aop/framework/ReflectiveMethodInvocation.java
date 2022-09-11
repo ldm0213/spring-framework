@@ -50,6 +50,9 @@ import org.springframework.lang.Nullable;
  * with existing framework integrations (e.g. Pitchfork). For any other
  * purposes, use the {@link ProxyMethodInvocation} interface instead.
  *
+ * ReflectiveMethodInvocation中持有代理对象，目标对象，目标方法，目标方法参数，目标对象的Class对象，拦截器链，
+ * 后续调用通知方法以及调用目标方法的逻辑的入口，就是ReflectiveMethodInvocation的proceed()方法。
+ *
  * @author Rod Johnson
  * @author Juergen Hoeller
  * @author Adrian Colyer
@@ -60,16 +63,20 @@ import org.springframework.lang.Nullable;
  * @see #getUserAttribute
  */
 public class ReflectiveMethodInvocation implements ProxyMethodInvocation, Cloneable {
-
+	// 代理对象
 	protected final Object proxy;
 
+	// 目标对象
 	@Nullable
 	protected final Object target;
 
+	// 目标方法
 	protected final Method method;
 
+	// 目标方法参数
 	protected Object[] arguments;
 
+	// 目标对象的Class对象
 	@Nullable
 	private final Class<?> targetClass;
 
@@ -82,6 +89,7 @@ public class ReflectiveMethodInvocation implements ProxyMethodInvocation, Clonea
 	/**
 	 * List of MethodInterceptor and InterceptorAndDynamicMethodMatcher
 	 * that need dynamic checks.
+	 * AOP拦截器执行链,是一个MethodInterceptor的集合
 	 */
 	protected final List<?> interceptorsAndDynamicMethodMatchers;
 
@@ -155,34 +163,37 @@ public class ReflectiveMethodInvocation implements ProxyMethodInvocation, Clonea
 	}
 
 
+	/**
+	 * proceed()是SpringAOP对于目标方法的一个拦截的过程，其中很重要的一个点是调用MethodInterceptor的invoke方法
+ 	 */
 	@Override
 	@Nullable
 	public Object proceed() throws Throwable {
-		// We start with an index of -1 and increment early.
+		// 如果执行到链条的末尾 则直接调用连接点方法 即直接调用目标方法
 		if (this.currentInterceptorIndex == this.interceptorsAndDynamicMethodMatchers.size() - 1) {
 			return invokeJoinpoint();
 		}
 
+		// 获取集合中的 MethodInterceptor
 		Object interceptorOrInterceptionAdvice =
 				this.interceptorsAndDynamicMethodMatchers.get(++this.currentInterceptorIndex);
+		// 如果是InterceptorAndDynamicMethodMatcher类型; 每一次都要去匹配是否适用于这个目标方法
 		if (interceptorOrInterceptionAdvice instanceof InterceptorAndDynamicMethodMatcher) {
-			// Evaluate dynamic method matcher here: static part will already have
-			// been evaluated and found to match.
 			InterceptorAndDynamicMethodMatcher dm =
 					(InterceptorAndDynamicMethodMatcher) interceptorOrInterceptionAdvice;
 			Class<?> targetClass = (this.targetClass != null ? this.targetClass : this.method.getDeclaringClass());
 			if (dm.methodMatcher.matches(this.method, targetClass, this.arguments)) {
+				// 如果匹配则直接调用MethodInterceptor的invoke方法
 				return dm.interceptor.invoke(this);
 			}
 			else {
-				// Dynamic matching failed.
-				// Skip this interceptor and invoke the next in the chain.
+				// 如果不适用于此目标方法，则继续执行下一个链条，递归调用
 				return proceed();
 			}
 		}
 		else {
-			// It's an interceptor, so we just invoke it: The pointcut will have
-			// been evaluated statically before this object was constructed.
+			// 说明是适用于此目标方法的，直接调用MethodInterceptor的invoke方法
+			// 传入this即ReflectiveMethodInvocation实例，传入this进入，这样就可以形成一个调用的链条了
 			return ((MethodInterceptor) interceptorOrInterceptionAdvice).invoke(this);
 		}
 	}
@@ -195,6 +206,7 @@ public class ReflectiveMethodInvocation implements ProxyMethodInvocation, Clonea
 	 */
 	@Nullable
 	protected Object invokeJoinpoint() throws Throwable {
+		// target 目标对象；method 目标方法；arguments 目标方法参数信息
 		return AopUtils.invokeJoinpointUsingReflection(this.target, this.method, this.arguments);
 	}
 

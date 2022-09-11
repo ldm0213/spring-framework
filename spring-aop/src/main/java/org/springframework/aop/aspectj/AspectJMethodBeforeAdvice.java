@@ -25,6 +25,8 @@ import org.springframework.lang.Nullable;
 /**
  * Spring AOP advice that wraps an AspectJ before method.
  *
+ * @Before注解的Advice
+ *
  * @author Rod Johnson
  * @author Adrian Colyer
  * @since 2.0
@@ -41,6 +43,7 @@ public class AspectJMethodBeforeAdvice extends AbstractAspectJAdvice implements 
 
 	@Override
 	public void before(Method method, Object[] args, @Nullable Object target) throws Throwable {
+		// 这里传进来的目标对象、目标参数、目标方法都没有用到
 		invokeAdviceMethod(getJoinPointMatch(), null, null);
 	}
 

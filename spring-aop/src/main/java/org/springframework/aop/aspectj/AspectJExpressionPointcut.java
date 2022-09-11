@@ -73,6 +73,13 @@ import org.springframework.util.StringUtils;
  * <p>Naturally, as this is to be processed by Spring AOP's proxy-based model,
  * only method execution pointcuts are supported.
  *
+ * 在AspectJExpressionPointcut这个类中主要实现了以下这四大接口：ClassFilter、BeanFactoryAware、MethodMatcher、Pointcut。
+ * 		Pointcut是SpringAOP中定义的接口，用来表示切面的抽象。
+ * 		BeanFactoryAware也是SpringIOC中一个常见的接口，用来设置BeanFactory实例。
+ * 		ClassFilter和MethodMatcher是SpringAOP中定义的进行Advisor匹配的接口，ClassFilter用来此Advisor是否使用于目标类。
+ * 		MethodMatcher用来匹配此Advisor是否可以作用于目标类中的目标方法。
+ * 	那么AspectJExpressionPointcut这个类就拥有了一下功能：从BeanFactory中获取Bean、拥有切点表达式、可以用来判断此切点表达式方法是否适用于目标类、此切点表达式方法是否适用于目标类中的方法
+ *
  * @author Rob Harrop
  * @author Adrian Colyer
  * @author Rod Johnson
@@ -85,6 +92,7 @@ import org.springframework.util.StringUtils;
 public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 		implements ClassFilter, IntroductionAwareMethodMatcher, BeanFactoryAware {
 
+	/** pointCut的表达式支持的元素 **/
 	private static final Set<PointcutPrimitive> SUPPORTED_PRIMITIVES = new HashSet<>();
 
 	static {
@@ -218,12 +226,15 @@ public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 	 * Build the underlying AspectJ pointcut expression.
 	 */
 	private PointcutExpression buildPointcutExpression(@Nullable ClassLoader classLoader) {
+		// 初始化一个PointcutParser的实例 PointcutParser是aspectj中提供的类
 		PointcutParser parser = initializePointcutParser(classLoader);
 		PointcutParameter[] pointcutParameters = new PointcutParameter[this.pointcutParameterNames.length];
 		for (int i = 0; i < pointcutParameters.length; i++) {
 			pointcutParameters[i] = parser.createPointcutParameter(
 					this.pointcutParameterNames[i], this.pointcutParameterTypes[i]);
 		}
+		// 解析切点表达式，我们的切点表示有可能会这样写：在切面中定义一个专门的切面表达式方法
+		// 在不同的通知类型中引入这个切点表达式的方法名
 		return parser.parsePointcutExpression(replaceBooleanOperators(resolveExpression()),
 				this.pointcutDeclarationScope, pointcutParameters);
 	}
@@ -251,6 +262,8 @@ public class AspectJExpressionPointcut extends AbstractExpressionPointcut
 	 * write {@code and} as "&&" (though &amp;&amp; will work).
 	 * We also allow {@code and} between two pointcut sub-expressions.
 	 * <p>This method converts back to {@code &&} for the AspectJ pointcut parser.
+	 *
+	 *  这个方法 将表达式中的 and 替换为 && or 替换为 ||   not 替换为 !
 	 */
 	private String replaceBooleanOperators(String pcExpr) {
 		String result = StringUtils.replace(pcExpr, " and ", " && ");

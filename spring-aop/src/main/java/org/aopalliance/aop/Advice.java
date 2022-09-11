@@ -20,6 +20,12 @@ package org.aopalliance.aop;
  * Tag interface for Advice. Implementations can be any type
  * of advice, such as Interceptors.
  *
+ * 是为了标示对应类为Advice;在Spring Aop中Advice表示的是在Pointcut点上应该执行的方法
+ * 有两类: 一类是普通Advice(After/Before...)等,另一类是Interceptor
+ *
+ * 不过所有解析的Advice最终都将适配成MethodInterceptor,
+ * 并在JdkDynamicAopProxy/CglibAopProxy中进行统一调用
+ *
  * @author Rod Johnson
  * @version $Id: Advice.java,v 1.1 2004/03/19 17:02:16 johnsonr Exp $
  */
