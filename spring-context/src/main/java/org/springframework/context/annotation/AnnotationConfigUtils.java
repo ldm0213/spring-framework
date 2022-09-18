@@ -123,17 +123,19 @@ public abstract class AnnotationConfigUtils {
 
 	static {
 		ClassLoader classLoader = AnnotationConfigUtils.class.getClassLoader();
+		// 根据是否有javax.annotation.Resource来看是否jsr250存在
 		jsr250Present = ClassUtils.isPresent("javax.annotation.Resource", classLoader);
+		// 根据是否有javax.persistence.EntityManagerFactory来看是否jpa存在
 		jpaPresent = ClassUtils.isPresent("javax.persistence.EntityManagerFactory", classLoader) &&
 				ClassUtils.isPresent(PERSISTENCE_ANNOTATION_PROCESSOR_CLASS_NAME, classLoader);
 	}
 
-
+	// ================org.springframework.beans.factory.config.BeanPostProcessor注册 start===================
 	/**
-	 * Register all relevant annotation post processors in the given registry.
+	 * 注册注解相关的 post processors到容器中
 	 * @param registry the registry to operate on
 	 */
-	public static void registerAnnotationConfigProcessors(BeanDefinitionRegistry registry) {
+	public static void  registerAnnotationConfigProcessors(BeanDefinitionRegistry registry) {
 		registerAnnotationConfigProcessors(registry, null);
 	}
 
@@ -159,27 +161,28 @@ public abstract class AnnotationConfigUtils {
 		}
 
 		Set<BeanDefinitionHolder> beanDefs = new LinkedHashSet<>(8);
-
+		// ConfigurationClassPostProcessor，支持@Configuration注解的解析
 		if (!registry.containsBeanDefinition(CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(ConfigurationClassPostProcessor.class);
 			def.setSource(source);
 			beanDefs.add(registerPostProcessor(registry, def, CONFIGURATION_ANNOTATION_PROCESSOR_BEAN_NAME));
 		}
 
+		// AutowiredAnnotationBeanPostProcessor，支持 @Autowired @Value 等注解的解析
 		if (!registry.containsBeanDefinition(AUTOWIRED_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(AutowiredAnnotationBeanPostProcessor.class);
 			def.setSource(source);
 			beanDefs.add(registerPostProcessor(registry, def, AUTOWIRED_ANNOTATION_PROCESSOR_BEAN_NAME));
 		}
 
-		// Check for JSR-250 support, and if present add the CommonAnnotationBeanPostProcessor.
+		// CommonAnnotationBeanPostProcessor，引入了JSR-250相关依赖且不存在对应BeanDefinition则注册，支持@Resource等注解的解析
 		if (jsr250Present && !registry.containsBeanDefinition(COMMON_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(CommonAnnotationBeanPostProcessor.class);
 			def.setSource(source);
 			beanDefs.add(registerPostProcessor(registry, def, COMMON_ANNOTATION_PROCESSOR_BEAN_NAME));
 		}
 
-		// Check for JPA support, and if present add the PersistenceAnnotationBeanPostProcessor.
+		// PersistenceAnnotationBeanPostProcessor，引入了JPA相关依赖且不存在对应BeanDefinition则注册，支持JPA相关后处理
 		if (jpaPresent && !registry.containsBeanDefinition(PERSISTENCE_ANNOTATION_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition();
 			try {
@@ -194,12 +197,13 @@ public abstract class AnnotationConfigUtils {
 			beanDefs.add(registerPostProcessor(registry, def, PERSISTENCE_ANNOTATION_PROCESSOR_BEAN_NAME));
 		}
 
+		// EventListenerMethodProcessor，负责对 @EventListener 注解标注的方法进行后处理
 		if (!registry.containsBeanDefinition(EVENT_LISTENER_PROCESSOR_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(EventListenerMethodProcessor.class);
 			def.setSource(source);
 			beanDefs.add(registerPostProcessor(registry, def, EVENT_LISTENER_PROCESSOR_BEAN_NAME));
 		}
-
+		// DefaultEventListenerFactory，主要由EventListenerMethodProcessor使用，用来基于@EventListener注解标注的方法获取对应ApplicationListener
 		if (!registry.containsBeanDefinition(EVENT_LISTENER_FACTORY_BEAN_NAME)) {
 			RootBeanDefinition def = new RootBeanDefinition(DefaultEventListenerFactory.class);
 			def.setSource(source);
@@ -209,14 +213,15 @@ public abstract class AnnotationConfigUtils {
 		return beanDefs;
 	}
 
+	// 注册postProcessor，返回BeanDefinitionHolder
 	private static BeanDefinitionHolder registerPostProcessor(
 			BeanDefinitionRegistry registry, RootBeanDefinition definition, String beanName) {
-
 		definition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 		registry.registerBeanDefinition(beanName, definition);
 		return new BeanDefinitionHolder(definition, beanName);
 	}
 
+	// 从容器中提取出DefaultListableBeanFactory
 	@Nullable
 	private static DefaultListableBeanFactory unwrapDefaultListableBeanFactory(BeanDefinitionRegistry registry) {
 		if (registry instanceof DefaultListableBeanFactory) {
@@ -229,6 +234,8 @@ public abstract class AnnotationConfigUtils {
 			return null;
 		}
 	}
+	// ================org.springframework.beans.factory.config.BeanPostProcessor注册 end===================
+
 
 	public static void processCommonDefinitionAnnotations(AnnotatedBeanDefinition abd) {
 		processCommonDefinitionAnnotations(abd, abd.getMetadata());

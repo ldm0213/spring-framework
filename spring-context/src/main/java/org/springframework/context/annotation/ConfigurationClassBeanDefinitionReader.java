@@ -117,6 +117,7 @@ class ConfigurationClassBeanDefinitionReader {
 	public void loadBeanDefinitions(Set<ConfigurationClass> configurationModel) {
 		TrackedConditionEvaluator trackedConditionEvaluator = new TrackedConditionEvaluator();
 		for (ConfigurationClass configClass : configurationModel) {
+			// 根据ConfigurationClass来注册BeanDefinition
 			loadBeanDefinitionsForConfigurationClass(configClass, trackedConditionEvaluator);
 		}
 	}
@@ -138,14 +139,17 @@ class ConfigurationClassBeanDefinitionReader {
 		}
 
 		if (configClass.isImported()) {
+			// 处理@Import的配置类
 			registerBeanDefinitionForImportedConfigurationClass(configClass);
 		}
 		for (BeanMethod beanMethod : configClass.getBeanMethods()) {
+			// 这里处理配置类中使用@Bean的方法对应的类，执行完这一步，当前的项目中的beanFactory的多了
 			loadBeanDefinitionsForBeanMethod(beanMethod);
 		}
-		// import注解资源处理
+		// 注册@ImportResource进来的Bean
 		loadBeanDefinitionsFromImportedResources(configClass.getImportedResources());
-		// Registrar处理
+		// 注册ImportBeanDefinitionRegistrar类型的
+		// 这里非常重要，AOP的实现全靠它了！！！这里会创建AnnotationAwareAspectJAutoProxyCreator
 		loadBeanDefinitionsFromRegistrars(configClass.getImportBeanDefinitionRegistrars());
 	}
 

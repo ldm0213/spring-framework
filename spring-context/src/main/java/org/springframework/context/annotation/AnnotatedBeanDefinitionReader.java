@@ -47,15 +47,17 @@ import org.springframework.util.Assert;
  * @see AnnotationConfigApplicationContext#register
  */
 public class AnnotatedBeanDefinitionReader {
-
+	/** 容器本身: 注册bean到容器中 **/
 	private final BeanDefinitionRegistry registry;
 
+	/** bean名字生成器 **/
 	private BeanNameGenerator beanNameGenerator = AnnotationBeanNameGenerator.INSTANCE;
 
+	/** 用于解析对应的 ScopeMetadata **/
 	private ScopeMetadataResolver scopeMetadataResolver = new AnnotationScopeMetadataResolver();
 
+	/** ConditionEvaluator 是用来完成对 @Conditional 这个条件注解的判断。 **/
 	private ConditionEvaluator conditionEvaluator;
-
 
 	/**
 	 * Create a new {@code AnnotatedBeanDefinitionReader} for the given registry.
@@ -85,7 +87,7 @@ public class AnnotatedBeanDefinitionReader {
 		Assert.notNull(environment, "Environment must not be null");
 		this.registry = registry;
 		this.conditionEvaluator = new ConditionEvaluator(registry, environment, null);
-		// 注册几个bean
+		// 注册几个bean, 注册注解相关的post processors到容器中
 		AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry);
 	}
 
@@ -251,16 +253,23 @@ public class AnnotatedBeanDefinitionReader {
 			@Nullable Class<? extends Annotation>[] qualifiers, @Nullable Supplier<T> supplier,
 			@Nullable BeanDefinitionCustomizer[] customizers) {
 
+		// 根据传入的annotatedClass生成AnnotatedGenericBeanDefinition
+		// 会对beanClass抽取出相应的AnnotationMetadata信息
 		AnnotatedGenericBeanDefinition abd = new AnnotatedGenericBeanDefinition(beanClass);
+		// 根据 @Conditional注解来判断是否要跳过解析
 		if (this.conditionEvaluator.shouldSkip(abd.getMetadata())) {
 			return;
 		}
 
+		// ScopeMetadata 解析
 		abd.setInstanceSupplier(supplier);
+		// 获取类的作用域，默认为Singleton
 		ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(abd);
 		abd.setScope(scopeMetadata.getScopeName());
+		// beanName 解析
 		String beanName = (name != null ? name : this.beanNameGenerator.generateBeanName(abd, this.registry));
 
+		// 处理配置类中的通用注解，即Lazy、DependsOn、Primary和Role等，将处理的结果放到AnnotatedGenericBeanDefinition的数据结构中
 		AnnotationConfigUtils.processCommonDefinitionAnnotations(abd);
 		if (qualifiers != null) {
 			for (Class<? extends Annotation> qualifier : qualifiers) {
@@ -275,14 +284,18 @@ public class AnnotatedBeanDefinitionReader {
 				}
 			}
 		}
+
+		// BeanDefinitionCustomizer 自定义回调
 		if (customizers != null) {
 			for (BeanDefinitionCustomizer customizer : customizers) {
 				customizer.customize(abd);
 			}
 		}
-
+		// 将AnnotatedGenericBeanDefinition和他对应的beanName存储到BeanDefinitionHolder中的对应属性中
 		BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(abd, beanName);
+		// 代理处理
 		definitionHolder = AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
+		// 将 BeanDefinitionHolder 注册给 this.registry 即 AnnotationConfigApplicationContext。
 		BeanDefinitionReaderUtils.registerBeanDefinition(definitionHolder, this.registry);
 	}
 
@@ -290,6 +303,7 @@ public class AnnotatedBeanDefinitionReader {
 	/**
 	 * Get the Environment from the given registry if possible, otherwise return a new
 	 * StandardEnvironment.
+	 * 用来表示当前的运行环境之类的
 	 */
 	private static Environment getOrCreateEnvironment(BeanDefinitionRegistry registry) {
 		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");

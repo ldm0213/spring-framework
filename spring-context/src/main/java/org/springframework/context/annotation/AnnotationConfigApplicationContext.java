@@ -52,9 +52,9 @@ import org.springframework.util.Assert;
  * @see org.springframework.context.support.GenericXmlApplicationContext
  */
 public class AnnotationConfigApplicationContext extends GenericApplicationContext implements AnnotationConfigRegistry {
-
+	// BeanDefinition读取器. BeanDefinition是描述bean注册的信息
 	private final AnnotatedBeanDefinitionReader reader;
-
+	// 创建BeanDefinition扫描器，可以扫描package下的bean
 	private final ClassPathBeanDefinitionScanner scanner;
 
 
@@ -84,9 +84,13 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 * {@link Configuration @Configuration} classes
 	 */
 	public AnnotationConfigApplicationContext(Class<?>... componentClasses) {
+		// 1. DefaultResourceLoader初始化classLoader
+		// 2. AbstractApplicationContext初始化resourcePatternResolver为PathMatchingResourcePatternResolver
+		// 3. GenericApplicationContext初始化beanFactory为DefaultListableBeanFactory
+
 		// 创建了AnnotatedBeanDefinitionReader和ClassPathBeanDefinitionScanner
 		this();
-		// 注册config类
+		// 传入的配置类annotatedClasses，生成BeanDefinition，然后将BeanDefinition注册到DefaultListableBeanFactory类型的对象beanFactory中
 		register(componentClasses);
 		refresh();
 	}
@@ -99,6 +103,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 */
 	public AnnotationConfigApplicationContext(String... basePackages) {
 		this();
+		// 扫描所有bean
 		scan(basePackages);
 		refresh();
 	}
@@ -160,6 +165,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 */
 	@Override
 	public void register(Class<?>... componentClasses) {
+		// 可以传递多个配置文件
 		Assert.notEmpty(componentClasses, "At least one component class must be specified");
 		this.reader.register(componentClasses);
 	}

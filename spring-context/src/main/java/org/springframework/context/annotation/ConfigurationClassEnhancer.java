@@ -64,6 +64,13 @@ import org.springframework.util.ReflectionUtils;
  * instance. Otherwise, a call to such an {@code @Bean} method serves as a
  * reference back to the container, obtaining the corresponding bean by name.
  *
+ * Spring中存在这样一个工具类ConfigurationClassEnhancer,它会对应用中每个配置类，
+ * 也就是一般通过@Configuration注解定义的类进行一个增强。通过增强以后，配置类中使用@Bean注解的bean定义方法就不再是普通的方法了，
+ * 它们具有了如下跟bean作用域有关的能力，以单例bean为例 ：
+ * 	1. 它们首次被调用时，相应方法逻辑会被执行用于创建bean实例；
+ * 	2. 再次被调用时，不会再执行创建bean实例，而是根据bean名称返回首次该方法被执行时创建的bean实例。
+ *
+ * https://blog.csdn.net/andy_zhang2007/article/details/86726507
  * @author Chris Beams
  * @author Juergen Hoeller
  * @since 3.0

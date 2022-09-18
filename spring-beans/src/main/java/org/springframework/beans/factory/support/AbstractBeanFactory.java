@@ -150,13 +150,13 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 	/** String resolvers to apply e.g. to annotation attribute values. */
 	private final List<StringValueResolver> embeddedValueResolvers = new CopyOnWriteArrayList<>();
 
-	/** BeanPostProcessors */
+	/** BeanPostProcessors: 作用在bean初始化前后，做一些动作 */
 	private final List<BeanPostProcessor> beanPostProcessors = new CopyOnWriteArrayList<>();
 
-	/** Indicates whether any InstantiationAwareBeanPostProcessors have been registered. */
+	/** 是否有InstantiationAwareBeanPostProcessors. */
 	private volatile boolean hasInstantiationAwareBeanPostProcessors;
 
-	/** Indicates whether any DestructionAwareBeanPostProcessors have been registered. */
+	/** 是否有 DestructionAwareBeanPostProcessors */
 	private volatile boolean hasDestructionAwareBeanPostProcessors;
 
 	/** Map from scope identifier String to corresponding Scope. */
@@ -946,14 +946,17 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 		Assert.notNull(beanPostProcessor, "BeanPostProcessor must not be null");
 		// Remove from old position, if any
 		this.beanPostProcessors.remove(beanPostProcessor);
-		// Track whether it is instantiation/destruction aware
+		// 如果当前的beanPostProcessor是InstantiationAwareBeanPostProcessor类型，
+		// 就要将beanFactory的hasInstantiationAwareBeanPostProcessors属性设置为true
+		// 这个属性在创建Bean的时候会用到： createBean -> resolveBeforeInstantiation
 		if (beanPostProcessor instanceof InstantiationAwareBeanPostProcessor) {
 			this.hasInstantiationAwareBeanPostProcessors = true;
 		}
 		if (beanPostProcessor instanceof DestructionAwareBeanPostProcessor) {
 			this.hasDestructionAwareBeanPostProcessors = true;
 		}
-		// Add to end of list
+		// 将beanPostProcessor放到beanFactory的beanPostProcessors属性中
+		// private final List<BeanPostProcessor> beanPostProcessors = new CopyOnWriteArrayList<>();
 		this.beanPostProcessors.add(beanPostProcessor);
 	}
 

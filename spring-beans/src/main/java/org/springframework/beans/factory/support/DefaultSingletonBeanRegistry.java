@@ -140,6 +140,11 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	 */
 	protected void addSingleton(String beanName, Object singletonObject) {
 		synchronized (this.singletonObjects) {
+			// 用于解决循环依赖，缓存等问题，需要以下四个变量
+			// singletonObjects：用于保存beanName和bean实例之间的关系
+			// singletonFactories：用于保存beanName和创建bean工厂之间的关系
+			// earlySingletonObjects：用于保存beanName和bean实例之间的关系，与singletonObjects不同之处在于：当一个单利bean被放到这里面之后，那么当bean还在创建过程种，就可以通过getBean方法获取到了，目的是用来检查循环依赖。
+			// registeredSingletons：用于保存当前所有已经创建的bean。
 			this.singletonObjects.put(beanName, singletonObject);
 			this.singletonFactories.remove(beanName);
 			this.earlySingletonObjects.remove(beanName);

@@ -40,6 +40,9 @@ import org.springframework.util.PatternMatchUtils;
  * registering corresponding bean definitions with a given registry ({@code BeanFactory}
  * or {@code ApplicationContext}).
  *
+ * ClassPathBeanDefinitionScanner是一个从指定包内扫描所有Bean的Spring工具类。
+ * 它在给定的包中进行扫描，找到其中标有注解且符合过滤规则的类，然后将这些类定义拿到将其注册到Spring容器中得到Bean组件。
+ *
  * <p>Candidate classes are detected through configurable type filters. The
  * default filters include classes that are annotated with Spring's
  * {@link org.springframework.stereotype.Component @Component},
@@ -163,6 +166,7 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 		this.registry = registry;
 
 		if (useDefaultFilters) {
+			// 添加Component, ManagedBean，Named注解过滤
 			registerDefaultFilters();
 		}
 		setEnvironment(environment);
@@ -272,7 +276,6 @@ public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateCo
 	protected Set<BeanDefinitionHolder> doScan(String... basePackages) {
 		// 真正进行给定目录下bean扫描的方法
 		Assert.notEmpty(basePackages, "At least one base package must be specified");
-		// ???为啥用linkedHashSet????
 		Set<BeanDefinitionHolder> beanDefinitions = new LinkedHashSet<>();
 		for (String basePackage : basePackages) {
 			Set<BeanDefinition> candidates = findCandidateComponents(basePackage);

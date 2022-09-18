@@ -18,6 +18,6 @@ public class AspectAopApplication {
 		System.out.println(calculator.getClass().getName());
 		System.out.println(calculator instanceof MathCalculator);
 
-		((MathCalculator) calculator).div(3, 0);
+		((MathCalculator) calculator).div(3, 1);
 	}
 }
