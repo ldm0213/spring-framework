@@ -259,6 +259,7 @@ public class ContextLoader {
 	 * @see #CONFIG_LOCATION_PARAM
 	 */
 	public WebApplicationContext initWebApplicationContext(ServletContext servletContext) {
+		// 当前容器中已经有该attribution就报错
 		if (servletContext.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE) != null) {
 			throw new IllegalStateException(
 					"Cannot initialize context because there is already a root application context present - " +
@@ -276,6 +277,7 @@ public class ContextLoader {
 			// Store context in local instance variable, to guarantee that
 			// it is available on ServletContext shutdown.
 			if (this.context == null) {
+				// 创建ApplicationContext，这里一般是XmlWebApplicationContext
 				this.context = createWebApplicationContext(servletContext);
 			}
 			if (this.context instanceof ConfigurableWebApplicationContext) {
@@ -329,11 +331,13 @@ public class ContextLoader {
 	 * @see ConfigurableWebApplicationContext
 	 */
 	protected WebApplicationContext createWebApplicationContext(ServletContext sc) {
+		// 获取WebApplicationContext类
 		Class<?> contextClass = determineContextClass(sc);
 		if (!ConfigurableWebApplicationContext.class.isAssignableFrom(contextClass)) {
 			throw new ApplicationContextException("Custom context class [" + contextClass.getName() +
 					"] is not of type [" + ConfigurableWebApplicationContext.class.getName() + "]");
 		}
+		// 初始化
 		return (ConfigurableWebApplicationContext) BeanUtils.instantiateClass(contextClass);
 	}
 
@@ -346,9 +350,17 @@ public class ContextLoader {
 	 * @see org.springframework.web.context.support.XmlWebApplicationContext
 	 */
 	protected Class<?> determineContextClass(ServletContext servletContext) {
+		// 优先从web.xml中获取上下文参数，这里的<context-param/>是Servlet的上下文参数，不是Spring应用的上下文参数！
+		// 在Servlet的上下文参数中，指定了接下来要创建的 Spring 应用的 ApplicationContext 的实现类名称。
+		// <context-param/> 标签内的参数可以通过Java代码ServletContext#getInitParameter方法得到，具体的代码是由Servlet容器来实现的。
+		// <context-param>
+      	// 		<param-name>contextClass</param-name>
+      	// 		<param-value>org.springframework.web.context.support.XmlWebApplicationContext</param-value>
+		// </context-param>
 		String contextClassName = servletContext.getInitParameter(CONTEXT_CLASS_PARAM);
 		if (contextClassName != null) {
 			try {
+				// web.xml指定了，直接获取类
 				return ClassUtils.forName(contextClassName, ClassUtils.getDefaultClassLoader());
 			}
 			catch (ClassNotFoundException ex) {
@@ -357,6 +369,7 @@ public class ContextLoader {
 			}
 		}
 		else {
+			// web.xml中没有指定就从配置文件中【ContextLoader.properties】拿取
 			contextClassName = defaultStrategies.getProperty(WebApplicationContext.class.getName());
 			try {
 				return ClassUtils.forName(contextClassName, ContextLoader.class.getClassLoader());
@@ -384,6 +397,8 @@ public class ContextLoader {
 		}
 
 		wac.setServletContext(sc);
+
+		// <context-param/> 设置 contextConfigLocation 参数，为WebApplicationContext自定义配置文件的路径。
 		String configLocationParam = sc.getInitParameter(CONFIG_LOCATION_PARAM);
 		if (configLocationParam != null) {
 			wac.setConfigLocation(configLocationParam);
