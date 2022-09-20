@@ -26,6 +26,7 @@ import org.springframework.lang.Nullable;
  * with {@link org.springframework.http.client.ClientHttpRequest}
  * and {@link org.springframework.web.client.RestTemplate}.
  *
+ * 支持的Http请求类型
  * @author Arjen Poutsma
  * @author Juergen Hoeller
  * @since 3.0

@@ -889,6 +889,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 
 	/**
 	 * Override the parent class implementation in order to intercept PATCH requests.
+	 * 用户请求到来首先进入该方法，根据不同的请求类型分发给不同的处理函数
 	 */
 	@Override
 	protected void service(HttpServletRequest request, HttpServletResponse response)
@@ -899,6 +900,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 			processRequest(request, response);
 		}
 		else {
+			// 调用HttpServlet的service方法，根据请求类型分发给不同的doXX函数处理
 			super.service(request, response);
 		}
 	}
@@ -1000,8 +1002,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 	}
 
 	/**
-	 * Process this request, publishing an event regardless of the outcome.
-	 * <p>The actual event handling is performed by the abstract
+	 * 真正对请求进行处理的地方
 	 * {@link #doService} template method.
 	 */
 	protected final void processRequest(HttpServletRequest request, HttpServletResponse response)
@@ -1022,6 +1023,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		initContextHolders(request, localeContext, requestAttributes);
 
 		try {
+			// 有DistpatchServlet进行处理
 			doService(request, response);
 		}
 		catch (ServletException | IOException ex) {

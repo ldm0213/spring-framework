@@ -146,6 +146,9 @@ public class HandlerExecutionChain {
 	boolean applyPreHandle(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		HandlerInterceptor[] interceptors = getInterceptors();
 		if (!ObjectUtils.isEmpty(interceptors)) {
+			// 按照顺序依次调用HandlerInterceptor的preHandle()方法，
+			// 当任一HandlerInterceptor的preHandle()方法返回了false就不再继续执行其他HandlerInterceptor的preHandle()方法，
+			// 而是直接跳转执行triggerAfterCompletion()方法
 			for (int i = 0; i < interceptors.length; i++) {
 				HandlerInterceptor interceptor = interceptors[i];
 				if (!interceptor.preHandle(request, response, this.handler)) {
@@ -183,6 +186,8 @@ public class HandlerExecutionChain {
 
 		HandlerInterceptor[] interceptors = getInterceptors();
 		if (!ObjectUtils.isEmpty(interceptors)) {
+			// 遍历的下标为interceptorIndex，该变量在前一个方法applyPreHandle()方法中赋值，
+			// 如果preHandle()方法返回true该变量加一，因此该方法会逆序执行所有preHandle()方法返回了true的HandlerInterceptor的afterCompletion()方法。
 			for (int i = this.interceptorIndex; i >= 0; i--) {
 				HandlerInterceptor interceptor = interceptors[i];
 				try {
