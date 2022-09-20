@@ -281,9 +281,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	private static final Properties defaultStrategies;
 
 	static {
-		// Load default strategy implementations from properties file.
-		// This is currently strictly internal and not meant to be customized
-		// by application developers.
+		// dispatchServlet九大组件的默认实现类配置文件.
 		try {
 			ClassPathResource resource = new ClassPathResource(DEFAULT_STRATEGIES_PATH, DispatcherServlet.class);
 			defaultStrategies = PropertiesLoaderUtils.loadProperties(resource);
@@ -489,6 +487,7 @@ public class DispatcherServlet extends FrameworkServlet {
 
 	/**
 	 * This implementation calls {@link #initStrategies}.
+	 * init方法最终调用onRefresh初始化DispatchServlet的各种组件
 	 */
 	@Override
 	protected void onRefresh(ApplicationContext context) {
@@ -498,16 +497,27 @@ public class DispatcherServlet extends FrameworkServlet {
 	/**
 	 * Initialize the strategy objects that this servlet uses.
 	 * <p>May be overridden in subclasses in order to initialize further strategy objects.
+	 * 初始化DispatcherServlet运行时所需要的各种策略组件。
+	 * 处理流程是首先尝试从容器获取指定类型或者名称的bean组件，如果找得到则应用所找到的策略组件；如果找不到，则构建缺省策略组件并使用
 	 */
 	protected void initStrategies(ApplicationContext context) {
+		// MultipartResolver文件上传相关
 		initMultipartResolver(context);
+		// LocaleResolver, 本地化语言相关
 		initLocaleResolver(context);
+		// ThemeResolver 相关
 		initThemeResolver(context);
+		// HandlerMapping (list) 相关
 		initHandlerMappings(context);
+		// HandlerAdapter (list) 相关
 		initHandlerAdapters(context);
+		// HandlerExceptionResolver (list) 异常处理Handler相关
 		initHandlerExceptionResolvers(context);
+		// RequestToViewNameTranslator 相关
 		initRequestToViewNameTranslator(context);
+		// ViewResolver (list) 相关
 		initViewResolvers(context);
+		// FlashMapManager 相关
 		initFlashMapManager(context);
 	}
 
@@ -515,6 +525,8 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * Initialize the MultipartResolver used by this class.
 	 * <p>If no bean is defined with the given name in the BeanFactory for this namespace,
 	 * no multipart handling is provided.
+	 *  从bean容器中获取名字为MULTIPART_RESOLVER_BEAN_NAME(multipartResolver)的bean
+	 *  记录到属性multipartResolver,没有相应bean的话设置为NULL
 	 */
 	private void initMultipartResolver(ApplicationContext context) {
 		try {
@@ -539,6 +551,9 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * Initialize the LocaleResolver used by this class.
 	 * <p>If no bean is defined with the given name in the BeanFactory for this namespace,
 	 * we default to AcceptHeaderLocaleResolver.
+	 *
+	 *  从bean容器中获取名字为LOCALE_RESOLVER_BEAN_NAME(localeResolver)的bean
+	 *  记录到属性localeResolver,没有相应bean的话使用缺省策略
 	 */
 	private void initLocaleResolver(ApplicationContext context) {
 		try {
@@ -564,6 +579,8 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * Initialize the ThemeResolver used by this class.
 	 * <p>If no bean is defined with the given name in the BeanFactory for this namespace,
 	 * we default to a FixedThemeResolver.
+	 * 从bean容器中获取名字为THEME_RESOLVER_BEAN_NAME(themeResolver)的bean
+	 * 记录到属性themeResolver,没有相应bean的话使用缺省策略
 	 */
 	private void initThemeResolver(ApplicationContext context) {
 		try {
@@ -589,6 +606,9 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * Initialize the HandlerMappings used by this class.
 	 * <p>If no HandlerMapping beans are defined in the BeanFactory for this namespace,
 	 * we default to BeanNameUrlHandlerMapping.
+	 * 从bean容器中获取名字为HANDLER_MAPPING_BEAN_NAME(handlerMapping)的bean,
+	 * 或者获取所有类型是HandlerMapping的bean(DispatcherServlet的缺省做法),
+	 * 记录到属性handlerMappings,没有相应bean的话使用缺省策略
 	 */
 	private void initHandlerMappings(ApplicationContext context) {
 		this.handlerMappings = null;
@@ -628,6 +648,9 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * Initialize the HandlerAdapters used by this class.
 	 * <p>If no HandlerAdapter beans are defined in the BeanFactory for this namespace,
 	 * we default to SimpleControllerHandlerAdapter.
+	 * 从bean容器中获取名字为HANDLER_ADAPTER_BEAN_NAME(handlerAdapter)的bean,
+	 * 或者获取所有类型是HandlerAdapter的bean(DispatcherServlet的缺省做法),
+	 * 记录到属性handlerAdapters,没有相应bean的话使用缺省策略
 	 */
 	private void initHandlerAdapters(ApplicationContext context) {
 		this.handlerAdapters = null;
@@ -667,6 +690,9 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * Initialize the HandlerExceptionResolver used by this class.
 	 * <p>If no bean is defined with the given name in the BeanFactory for this namespace,
 	 * we default to no exception resolver.
+	 * 从bean容器中获取名字为HANDLER_EXCEPTION_RESOLVER_BEAN_NAME(handlerExceptionResolver)的bean,
+	 * 或者获取所有类型是HandlerExceptionResolver的bean(DispatcherServlet的缺省做法),
+	 * 记录到属性handlerExceptionResolvers,没有相应bean的话使用缺省策略
 	 */
 	private void initHandlerExceptionResolvers(ApplicationContext context) {
 		this.handlerExceptionResolvers = null;
@@ -706,6 +732,8 @@ public class DispatcherServlet extends FrameworkServlet {
 	/**
 	 * Initialize the RequestToViewNameTranslator used by this servlet instance.
 	 * <p>If no implementation is configured then we default to DefaultRequestToViewNameTranslator.
+	 * 从bean容器中获取名字为REQUEST_TO_VIEW_NAME_TRANSLATOR_BEAN_NAME(viewNameTranslator)的bean
+	 * 记录到属性viewNameTranslator,没有相应bean的话使用缺省策略
 	 */
 	private void initRequestToViewNameTranslator(ApplicationContext context) {
 		try {
@@ -732,6 +760,9 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * Initialize the ViewResolvers used by this class.
 	 * <p>If no ViewResolver beans are defined in the BeanFactory for this
 	 * namespace, we default to InternalResourceViewResolver.
+	 * 从bean容器中获取名字为VIEW_RESOLVER_BEAN_NAME(viewResolver)的bean,
+	 * 或者获取所有类型是ViewResolver的bean(DispatcherServlet的缺省做法),
+	 * 记录到属性viewResolvers,没有相应bean的话使用缺省策略
 	 */
 	private void initViewResolvers(ApplicationContext context) {
 		this.viewResolvers = null;
@@ -771,6 +802,8 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * Initialize the {@link FlashMapManager} used by this servlet instance.
 	 * <p>If no implementation is configured then we default to
 	 * {@code org.springframework.web.servlet.support.DefaultFlashMapManager}.
+	 * 从bean容器中获取名字为FLASH_MAP_MANAGER_BEAN_NAME(flashMapManager)的bean
+	 * 记录到属性flashMapManager,没有相应bean的话使用缺省策略
 	 */
 	private void initFlashMapManager(ApplicationContext context) {
 		try {
@@ -852,6 +885,9 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * <p>The default implementation uses the "DispatcherServlet.properties" file (in the same
 	 * package as the DispatcherServlet class) to determine the class names. It instantiates
 	 * the strategy objects through the context's BeanFactory.
+	 *
+	 * 根据DispatcherServlet.properties中的配置信息初始化默认的bean
+	 *
 	 * @param context the current WebApplicationContext
 	 * @param strategyInterface the strategy interface
 	 * @return the List of corresponding strategy objects

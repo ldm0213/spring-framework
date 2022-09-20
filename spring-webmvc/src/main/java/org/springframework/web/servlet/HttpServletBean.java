@@ -142,13 +142,15 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 	/**
 	 * Map config parameters onto bean properties of this servlet, and
 	 * invoke subclass initialization.
+	 *
+	 * DisptacherServlet初始化的入口
+	 *
 	 * @throws ServletException if bean properties are invalid (or required
 	 * properties are missing), or if subclass initialization fails.
 	 */
 	@Override
 	public final void init() throws ServletException {
-
-		// Set bean properties from init parameters.
+		// 解析web.xml中的servlet里面的init-param桉树
 		PropertyValues pvs = new ServletConfigPropertyValues(getServletConfig(), this.requiredProperties);
 		if (!pvs.isEmpty()) {
 			try {
@@ -166,7 +168,7 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 			}
 		}
 
-		// Let subclasses do whatever initialization they like.
+		// FrameworkServlet实现该方法，而且是final的
 		initServletBean();
 	}
 
@@ -204,7 +206,19 @@ public abstract class HttpServletBean extends HttpServlet implements Environment
 
 
 	/**
-	 * PropertyValues implementation created from ServletConfig init parameters.
+	 * ServletConfigPropertyValues用于解析web.xml定义中<servlet>元素的子元素<init-param>中的参数值。
+	 * 若<init-param>元素如下，则ServletConfigPropertyValues就会拥有这些参数
+	 *
+	 * 	<servlet>
+	 * 		<servlet-name>springmvc</servlet-name>
+	 * 		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+	 * 	    --- 解析该部分
+	 * 		<init-param>
+	 * 			<param-name>contextConfigLocation</param-name>
+	 * 			<param-value>/WEB-INF/springmvc-servlet.xml</param-value>
+	 * 		</init-param>
+	 * 		<load-on-startup>1</load-on-startup>
+	 * 	</servlet>
 	 */
 	private static class ServletConfigPropertyValues extends MutablePropertyValues {
 
