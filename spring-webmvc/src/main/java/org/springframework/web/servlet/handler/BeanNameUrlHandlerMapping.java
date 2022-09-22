@@ -43,6 +43,8 @@ import org.springframework.util.StringUtils;
  * For details on the pattern options, see the
  * {@link org.springframework.util.AntPathMatcher} javadoc.
  *
+ *  mvc配置文件中: <bean name="/welcome" class="coderead.springframework.mvc.WelcomeController" />
+ *
  * @author Rod Johnson
  * @author Juergen Hoeller
  * @see SimpleUrlHandlerMapping
@@ -51,6 +53,7 @@ public class BeanNameUrlHandlerMapping extends AbstractDetectingUrlHandlerMappin
 
 	/**
 	 * Checks name and aliases of the given bean for URLs, starting with "/".
+	 * 筛选出名称以“/”开头的 Bean，并把这些 Bean 的名称组成一个列表
 	 */
 	@Override
 	protected String[] determineUrlsForHandler(String beanName) {

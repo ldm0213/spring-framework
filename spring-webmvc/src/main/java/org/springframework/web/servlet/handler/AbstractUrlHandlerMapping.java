@@ -49,21 +49,23 @@ import org.springframework.web.servlet.HandlerExecutionChain;
  * current request path. The most exact match is defined as the longest
  * path pattern that matches the current request path.
  *
+ * 以 URL 作为 Handler 处理器 的 HandlerMapping 抽象类，提供 Handler 的获取、注册等等通用的骨架方法。
+ *
  * @author Juergen Hoeller
  * @author Arjen Poutsma
  * @since 16.04.2003
  */
 public abstract class AbstractUrlHandlerMapping extends AbstractHandlerMapping implements MatchableHandlerMapping {
 
+	// 根路径（"/"）的处理器
 	@Nullable
 	private Object rootHandler;
-
+	// 使用后置的 / 匹配
 	private boolean useTrailingSlashMatch = false;
-
+	// 是否延迟加载处理器，默认关闭
 	private boolean lazyInitHandlers = false;
-
+	// 用handlerMap保存url和 “Handler” 之间的映射
 	private final Map<String, Object> handlerMap = new LinkedHashMap<>();
-
 
 	/**
 	 * Set the root handler for this handler mapping, that is,
@@ -121,9 +123,12 @@ public abstract class AbstractUrlHandlerMapping extends AbstractHandlerMapping i
 	@Override
 	@Nullable
 	protected Object getHandlerInternal(HttpServletRequest request) throws Exception {
+		// 获得请求的路径
 		String lookupPath = getUrlPathHelper().getLookupPathForRequest(request);
 		request.setAttribute(LOOKUP_PATH, lookupPath);
+		// 获得处理器
 		Object handler = lookupHandler(lookupPath, request);
+		// 如果找不到处理器，则使用 rootHandler 或 defaultHandler 处理器
 		if (handler == null) {
 			// We need to care for the default handler directly, since we need to
 			// expose the PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE for it as well.
@@ -162,10 +167,10 @@ public abstract class AbstractUrlHandlerMapping extends AbstractHandlerMapping i
 	 */
 	@Nullable
 	protected Object lookupHandler(String urlPath, HttpServletRequest request) throws Exception {
-		// Direct match?
+		// 情况一，从 handlerMap 中，直接匹配处理器
 		Object handler = this.handlerMap.get(urlPath);
 		if (handler != null) {
-			// Bean name or resolved handler?
+			// 如果找到的处理器是 String 类型，则从容器中找到该 beanName 对应的 Bean 作为处理器
 			if (handler instanceof String) {
 				String handlerName = (String) handler;
 				handler = obtainApplicationContext().getBean(handlerName);
@@ -174,7 +179,7 @@ public abstract class AbstractUrlHandlerMapping extends AbstractHandlerMapping i
 			return buildPathExposingHandler(handler, urlPath, urlPath, null);
 		}
 
-		// Pattern match?
+		// 情况二，Pattern 匹配合适的，并添加到 matchingPatterns 中
 		List<String> matchingPatterns = new ArrayList<>();
 		for (String registeredPattern : this.handlerMap.keySet()) {
 			if (getPathMatcher().match(registeredPattern, urlPath)) {
@@ -187,6 +192,7 @@ public abstract class AbstractUrlHandlerMapping extends AbstractHandlerMapping i
 			}
 		}
 
+		// 获得首个匹配（最优）的结果
 		String bestMatch = null;
 		Comparator<String> patternComparator = getPathMatcher().getPatternComparator(urlPath);
 		if (!matchingPatterns.isEmpty()) {
@@ -217,6 +223,7 @@ public abstract class AbstractUrlHandlerMapping extends AbstractHandlerMapping i
 
 			// There might be multiple 'best patterns', let's make sure we have the correct URI template variables
 			// for all of them
+			// 获得路径参数集合
 			Map<String, String> uriTemplateVariables = new LinkedHashMap<>();
 			for (String matchingPattern : matchingPatterns) {
 				if (patternComparator.compare(bestMatch, matchingPattern) == 0) {
@@ -228,6 +235,7 @@ public abstract class AbstractUrlHandlerMapping extends AbstractHandlerMapping i
 			if (logger.isTraceEnabled() && uriTemplateVariables.size() > 0) {
 				logger.trace("URI variables " + uriTemplateVariables);
 			}
+			// 创建处理器
 			return buildPathExposingHandler(handler, bestMatch, pathWithinMapping, uriTemplateVariables);
 		}
 
