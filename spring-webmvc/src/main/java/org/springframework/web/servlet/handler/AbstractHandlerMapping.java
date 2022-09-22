@@ -58,6 +58,7 @@ import org.springframework.web.util.UrlPathHelper;
  * <p>Note: This base class does <i>not</i> support exposure of the
  * {@link #PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE}. Support for this attribute
  * is up to concrete subclasses, typically based on request URL mappings.
+ * AbstractHandlerMapping采用模板模式设计了HandlerMapping实现的整体结构，子类只需要通过模板方法提供一些初始值或者具体的算法即可
  *
  * @author Juergen Hoeller
  * @author Rossen Stoyanchev
@@ -80,6 +81,9 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 
 	private PathMatcher pathMatcher = new AntPathMatcher();
 
+	// 用于配置Spring MVC的拦截器，
+	// 有两种设置方式：1. 注册Handler-Mapping时通过属性设置；2.通过子类的extendInterceptors钩子方法进行设置。
+	// Interceptors并不会直接使用，而是通过initInterceptors方法按类型分配到mapped-Interceptors和adaptedInterceptors中进行使用，Interceptors只用于配置。
 	private final List<Object> interceptors = new ArrayList<>();
 
 	private final List<HandlerInterceptor> adaptedInterceptors = new ArrayList<>();
@@ -283,8 +287,11 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	 */
 	@Override
 	protected void initApplicationContext() throws BeansException {
+		// extendInterceptors是模板方法，用于给子类提供一个添加或者修改Interceptors的入口，不过在现有Spring MVC的实现中并没有使用
 		extendInterceptors(this.interceptors);
+		// detectMappedInterceptors方法用于将Spring MVC容器及父容器中的所有MappedInterceptor类型的Bean添加到adaptedInterceptors中
 		detectMappedInterceptors(this.adaptedInterceptors);
+		// initInterceptors方法的作用是初始化Interceptor，具体内容其实是将interceptors属性里所包含的对象按类型添加到mappedInterceptors或者adaptedInterceptors
 		initInterceptors();
 	}
 
@@ -310,12 +317,16 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 	 * @param mappedInterceptors an empty list to add to
 	 */
 	protected void detectMappedInterceptors(List<HandlerInterceptor> mappedInterceptors) {
+		// 将Spring MVC容器及父容器中的所有MappedInterceptor类型的Bean添加到mappedInterceptors属性
 		mappedInterceptors.addAll(BeanFactoryUtils.beansOfTypeIncludingAncestors(
 				obtainApplicationContext(), MappedInterceptor.class, true, false).values());
 	}
 
 	/**
 	 * Initialize the specified interceptors adapting
+	 * 初始化Interceptor，对于不同类型的Interceptor进行处理
+	 * 	主要有HandlerInterceptor和WebRequestInterceptor,
+	 * 	需要使用WebRequestHandlerInterceptorAdapter适配WebRequestInterceptor
 	 * {@link WebRequestInterceptor}s to {@link HandlerInterceptor}.
 	 * @see #setInterceptors
 	 * @see #adaptInterceptor
@@ -327,6 +338,7 @@ public abstract class AbstractHandlerMapping extends WebApplicationObjectSupport
 				if (interceptor == null) {
 					throw new IllegalArgumentException("Entry number " + i + " in interceptors array is null");
 				}
+				// HandlerInterceptor和WebRequestInterceptor,需要WebRequestHandlerInterceptorAdapter适配WebRequestInterceptor
 				this.adaptedInterceptors.add(adaptInterceptor(interceptor));
 			}
 		}

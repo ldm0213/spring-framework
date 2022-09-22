@@ -67,6 +67,9 @@ import org.springframework.web.servlet.mvc.method.RequestMappingInfoHandlerMappi
  * ContentNegotiationManagerFactoryBean}). For further context, please read issue
  * <a href="https://github.com/spring-projects/spring-framework/issues/24179">#24719</a>.
  *
+ * RequestMappingHandlerMapping是HandlerMapping的一个实现，
+ * 主要用于针对控制器类(带有注解@Controller)中类级别或者方法级别的注解@RequestMapping创建RequestMappingInfo并管理。
+ *
  * @author Arjen Poutsma
  * @author Rossen Stoyanchev
  * @author Sam Brannen
@@ -178,6 +181,7 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 	@Override
 	@SuppressWarnings("deprecation")
 	public void afterPropertiesSet() {
+		// bean初始化后先做一些config的配置，用于RequestMappingInfo里面各种匹配逻辑
 		this.config = new RequestMappingInfo.BuilderConfiguration();
 		this.config.setUrlPathHelper(getUrlPathHelper());
 		this.config.setPathMatcher(getPathMatcher());
@@ -185,7 +189,7 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 		this.config.setTrailingSlashMatch(useTrailingSlashMatch());
 		this.config.setRegisteredSuffixPatternMatch(useRegisteredSuffixPatternMatch());
 		this.config.setContentNegotiationManager(getContentNegotiationManager());
-
+		// 初始化各个handler，查找所有的接口，封装为RequestMappingInfo，保存起来
 		super.afterPropertiesSet();
 	}
 
@@ -237,6 +241,7 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 	 */
 	@Override
 	protected boolean isHandler(Class<?> beanType) {
+		// beanClass有Controller或者RequestMapping注解的都是handler
 		return (AnnotatedElementUtils.hasAnnotation(beanType, Controller.class) ||
 				AnnotatedElementUtils.hasAnnotation(beanType, RequestMapping.class));
 	}
@@ -254,8 +259,14 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 	protected RequestMappingInfo getMappingForMethod(Method method, Class<?> handlerType) {
 		RequestMappingInfo info = createRequestMappingInfo(method);
 		if (info != null) {
+			// 类上的信息
 			RequestMappingInfo typeInfo = createRequestMappingInfo(handlerType);
+
+			// 这个类型信息，是解析类上的RequestMapping注解信息，然后跟方法的进行拼接组合
+			// 比如方法上有路径/hello,类上：/demo，就可以拼接出/demo/hello，这里的拼接还包含其它信息的拼接，
+			// 如果类上有两条路径，方法有两条，就会产生2*2=4条，多条路径类似
 			if (typeInfo != null) {
+				// 注意这个方法的使用，是谁组合谁，谁在前
 				info = typeInfo.combine(info);
 			}
 			String prefix = getPathPrefix(handlerType);
@@ -332,10 +343,11 @@ public class RequestMappingHandlerMapping extends RequestMappingInfoHandlerMappi
 	 * {@link RequestMapping @RequestMapping} annotation, which is either
 	 * a directly declared annotation, a meta-annotation, or the synthesized
 	 * result of merging annotation attributes within an annotation hierarchy.
+	 * 根据RequestMapping注解的属性信息构建RequestMappingInfo
 	 */
 	protected RequestMappingInfo createRequestMappingInfo(
 			RequestMapping requestMapping, @Nullable RequestCondition<?> customCondition) {
-
+		// 使用RequestMappingInfo的builder进行RequestMappingInfo的构建
 		RequestMappingInfo.Builder builder = RequestMappingInfo
 				.paths(resolveEmbeddedValuesInPatterns(requestMapping.path()))
 				.methods(requestMapping.method())

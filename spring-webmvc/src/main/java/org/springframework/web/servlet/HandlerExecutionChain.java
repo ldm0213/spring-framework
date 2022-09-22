@@ -33,6 +33,8 @@ import org.springframework.util.ObjectUtils;
  * Handler execution chain, consisting of handler object and any handler interceptors.
  * Returned by HandlerMapping's {@link HandlerMapping#getHandler} method.
  *
+ * 处理器执行链，也就是通过 HandlerMapping 组件为请求找到的处理对象，包含处理器（handler）和拦截器（interceptors）
+ *
  * @author Juergen Hoeller
  * @since 20.06.2003
  * @see HandlerInterceptor
@@ -40,15 +42,17 @@ import org.springframework.util.ObjectUtils;
 public class HandlerExecutionChain {
 
 	private static final Log logger = LogFactory.getLog(HandlerExecutionChain.class);
-
+	// RequestMethod
 	private final Object handler;
 
+	// 拦截器
 	@Nullable
 	private HandlerInterceptor[] interceptors;
 
 	@Nullable
 	private List<HandlerInterceptor> interceptorList;
 
+	// 记录已成功执行前置处理的拦截器位置，因为已完成处理只会执行前置处理成功的拦截器，且倒序执行
 	private int interceptorIndex = -1;
 
 
@@ -186,6 +190,7 @@ public class HandlerExecutionChain {
 
 		HandlerInterceptor[] interceptors = getInterceptors();
 		if (!ObjectUtils.isEmpty(interceptors)) {
+			// 通过interceptorIndex属性，只会执行前置处理成功的拦截器们，因为该属性定义了成功执行前置处理的拦截器的位置
 			// 遍历的下标为interceptorIndex，该变量在前一个方法applyPreHandle()方法中赋值，
 			// 如果preHandle()方法返回true该变量加一，因此该方法会逆序执行所有preHandle()方法返回了true的HandlerInterceptor的afterCompletion()方法。
 			for (int i = this.interceptorIndex; i >= 0; i--) {

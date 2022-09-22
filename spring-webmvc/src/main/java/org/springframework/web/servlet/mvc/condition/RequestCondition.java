@@ -28,6 +28,9 @@ import org.springframework.lang.Nullable;
  * to each other via {@link #compareTo(Object, HttpServletRequest)} to determine
  * which is a closer match for a given request.
  *
+ * 接口RequestCondition是Spring MVC对一个请求匹配条件的概念建模。
+ * 有路径匹配，头部匹配，请求参数匹配，可产生MIME匹配，可消费MIME匹配，请求方法匹配，或者是以上各种情况的匹配条件的一个组合几种实现方案。
+ *
  * @author Rossen Stoyanchev
  * @author Arjen Poutsma
  * @since 3.1
@@ -39,6 +42,8 @@ public interface RequestCondition<T> {
 	/**
 	 * Combine this condition with another such as conditions from a
 	 * type-level and method-level {@code @RequestMapping} annotation.
+	 *
+	 * 和另外一个请求匹配条件合并，具体合并逻辑由实现类提供
 	 * @param other the condition to combine with.
 	 * @return a request condition instance that is the result of combining
 	 * the two condition instances.
@@ -55,6 +60,12 @@ public interface RequestCondition<T> {
 	 * from the "Access-Control-Request-Method" header). If a condition cannot
 	 * be matched to a pre-flight request it should return an instance with
 	 * empty content thus not causing a failure to match.
+	 *
+	 * 	检查当前请求匹配条件和指定请求request是否匹配，如果不匹配返回null，
+	 * 	如果匹配，生成一个新的请求匹配条件，该新的请求匹配条件是当前请求匹配条件，针对指定请求request的剪裁。
+	 * 	举个例子来讲，如果当前请求匹配条件是一个路径匹配条件，包含多个路径匹配模板，并且其中有些模板和指定请求request匹配，
+	 * 	那么返回的新建的请求匹配条件将仅仅包含和指定请求request匹配的那些路径模板。
+	 *
 	 * @return a condition instance in case of a match or {@code null} otherwise.
 	 */
 	@Nullable
@@ -65,6 +76,9 @@ public interface RequestCondition<T> {
 	 * a specific request. This method assumes both instances have
 	 * been obtained via {@link #getMatchingCondition(HttpServletRequest)}
 	 * to ensure they have content relevant to current request only.
+	 *
+	 * 针对指定的请求对象request比较两个请求匹配条件。该方法假定被比较的两个请求匹配条件都是针对该请求对象request调用了
+	 * #getMatchingCondition方法得到的，这样才能确保对它们的比较是针对同一个请求对象request，这样的比较才有意义(最终用来确定谁是更匹配的条件)。
 	 */
 	int compareTo(T other, HttpServletRequest request);
 

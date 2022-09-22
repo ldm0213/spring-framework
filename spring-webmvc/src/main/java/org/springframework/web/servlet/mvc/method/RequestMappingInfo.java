@@ -51,6 +51,9 @@ import org.springframework.web.util.UrlPathHelper;
  * <li>{@code RequestCondition} (optional, custom request condition)
  * </ol>
  *
+ * RequestMappingInfo实现了RequestCondition接口，此接口专门用于保存从request提取出的用于匹配Handler的条件,
+ * 不是针对请求匹配某个一方面的实现类，而是包含了一个请求匹配的所有方面
+ *
  * @author Arjen Poutsma
  * @author Rossen Stoyanchev
  * @since 3.1
@@ -74,17 +77,17 @@ public final class RequestMappingInfo implements RequestCondition<RequestMapping
 
 	@Nullable
 	private final String name;
-
+	// 路径匹配条件
 	private final PatternsRequestCondition patternsCondition;
-
+	// 请求方法匹配条件
 	private final RequestMethodsRequestCondition methodsCondition;
-
+	// 请求参数匹配条件
 	private final ParamsRequestCondition paramsCondition;
-
+	// 头部信息匹配条件
 	private final HeadersRequestCondition headersCondition;
-
+	// 可消费MIME匹配条件
 	private final ConsumesRequestCondition consumesCondition;
-
+	// 可生成MIME匹配条件
 	private final ProducesRequestCondition producesCondition;
 
 	private final RequestConditionHolder customConditionHolder;

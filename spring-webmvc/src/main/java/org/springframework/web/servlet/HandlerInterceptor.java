@@ -63,6 +63,9 @@ import org.springframework.web.method.HandlerMethod;
  * forms and GZIP compression. This typically shows when one needs to map the
  * filter to certain content types (e.g. images), or to all requests.
  *
+ * 拦截器是通过<mvc:interceptor></mvc:interceptor>来注入的，解析类为
+ * 				org.springframework.web.servlet.config.MvcNamespaceHandler
+ *
  * @author Juergen Hoeller
  * @since 20.06.2003
  * @see HandlerExecutionChain#getInterceptors
@@ -84,6 +87,8 @@ public interface HandlerInterceptor {
 	 * typically sending an HTTP error or writing a custom response.
 	 * <p><strong>Note:</strong> special considerations apply for asynchronous
 	 * request processing. For more details see
+	 * 前置处理，在 {@link HandlerAdapter#handle(HttpServletRequest, HttpServletResponse, Object)} 执行之前
+	 *
 	 * {@link org.springframework.web.servlet.AsyncHandlerInterceptor}.
 	 * <p>The default implementation returns {@code true}.
 	 * @param request current HTTP request
@@ -137,6 +142,10 @@ public interface HandlerInterceptor {
 	 * request processing. For more details see
 	 * {@link org.springframework.web.servlet.AsyncHandlerInterceptor}.
 	 * <p>The default implementation is empty.
+	 *
+	 * 完成处理，在 {@link HandlerAdapter#handle(HttpServletRequest, HttpServletResponse, Object)} 执行之后（无论成功还是失败）
+	 * 条件：执行 {@link #preHandle(HttpServletRequest, HttpServletResponse, Object)} 成功的拦截器才会执行该方法
+	 *
 	 * @param request current HTTP request
 	 * @param response current HTTP response
 	 * @param handler the handler (or {@link HandlerMethod}) that started asynchronous

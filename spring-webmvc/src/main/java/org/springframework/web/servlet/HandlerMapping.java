@@ -46,6 +46,8 @@ import org.springframework.lang.Nullable;
  * interface to be able to specify a sorting order and thus a priority for getting
  * applied by DispatcherServlet. Non-Ordered instances get treated as lowest priority.
  *
+ * HandlerMapping的作用是根据request查找Handler和Interceptors。获取Handler的过程通过模板方法getHandlerInternal交给了子类
+ *
  * @author Rod Johnson
  * @author Juergen Hoeller
  * @see org.springframework.core.Ordered
@@ -139,6 +141,9 @@ public interface HandlerMapping {
 	 * <p>Returns {@code null} if no match was found. This is not an error.
 	 * The DispatcherServlet will query all registered HandlerMapping beans to find
 	 * a match, and only decide there is an error if none can find a handler.
+	 *
+	 * 根据request查找Handler和Interceptors
+	 *
 	 * @param request current HTTP request
 	 * @return a HandlerExecutionChain instance containing handler object and
 	 * any interceptors, or {@code null} if no mapping found
