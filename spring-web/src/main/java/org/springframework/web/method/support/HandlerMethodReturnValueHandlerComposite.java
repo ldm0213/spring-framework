@@ -31,6 +31,9 @@ import org.springframework.web.context.request.NativeWebRequest;
  * Handles method return values by delegating to a list of registered {@link HandlerMethodReturnValueHandler HandlerMethodReturnValueHandlers}.
  * Previously resolved return types are cached for faster lookups.
  *
+ * 处理请求的返回值，提供了多个HandlerMethodReturnValueHandler对于结果进行解析，
+ * 在具体的HandlerAdpter子类中进行初始化
+ *
  * @author Rossen Stoyanchev
  * @since 3.1
  */
@@ -60,6 +63,7 @@ public class HandlerMethodReturnValueHandlerComposite implements HandlerMethodRe
 	@Nullable
 	private HandlerMethodReturnValueHandler getReturnValueHandler(MethodParameter returnType) {
 		for (HandlerMethodReturnValueHandler handler : this.returnValueHandlers) {
+			// 获取第一个支持的handler
 			if (handler.supportsReturnType(returnType)) {
 				return handler;
 			}
@@ -74,7 +78,7 @@ public class HandlerMethodReturnValueHandlerComposite implements HandlerMethodRe
 	@Override
 	public void handleReturnValue(@Nullable Object returnValue, MethodParameter returnType,
 			ModelAndViewContainer mavContainer, NativeWebRequest webRequest) throws Exception {
-
+		// 查找第一个合适的handler，然后进行处理
 		HandlerMethodReturnValueHandler handler = selectHandler(returnValue, returnType);
 		if (handler == null) {
 			throw new IllegalArgumentException("Unknown return value type: " + returnType.getParameterType().getName());

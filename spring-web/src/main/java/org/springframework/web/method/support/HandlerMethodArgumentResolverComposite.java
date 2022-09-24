@@ -32,6 +32,8 @@ import org.springframework.web.context.request.NativeWebRequest;
  * {@link HandlerMethodArgumentResolver HandlerMethodArgumentResolvers}.
  * Previously resolved method parameters are cached for faster lookups.
  *
+ * 参数解析器，在具体的HandlerAdpter子类中进行初始化
+ *
  * @author Rossen Stoyanchev
  * @author Juergen Hoeller
  * @since 3.1
@@ -112,7 +114,7 @@ public class HandlerMethodArgumentResolverComposite implements HandlerMethodArgu
 	@Nullable
 	public Object resolveArgument(MethodParameter parameter, @Nullable ModelAndViewContainer mavContainer,
 			NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory) throws Exception {
-
+		// 查找第一个合适的参数解析器，然后解析参数
 		HandlerMethodArgumentResolver resolver = getArgumentResolver(parameter);
 		if (resolver == null) {
 			throw new IllegalArgumentException("Unsupported parameter type [" +

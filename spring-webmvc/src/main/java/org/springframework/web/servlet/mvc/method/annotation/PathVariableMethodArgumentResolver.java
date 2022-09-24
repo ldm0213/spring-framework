@@ -73,6 +73,7 @@ public class PathVariableMethodArgumentResolver extends AbstractNamedValueMethod
 		if (!parameter.hasParameterAnnotation(PathVariable.class)) {
 			return false;
 		}
+		// Map 类型，有 @PathVariable 注解，但是有 name 属性
 		if (Map.class.isAssignableFrom(parameter.nestedIfOptional().getNestedParameterType())) {
 			PathVariable pathVariable = parameter.getParameterAnnotation(PathVariable.class);
 			return (pathVariable != null && StringUtils.hasText(pathVariable.value()));
@@ -87,12 +88,15 @@ public class PathVariableMethodArgumentResolver extends AbstractNamedValueMethod
 		return new PathVariableNamedValueInfo(ann);
 	}
 
+	// 从请求路径中获取方法参数的值
 	@Override
 	@SuppressWarnings("unchecked")
 	@Nullable
 	protected Object resolveName(String name, MethodParameter parameter, NativeWebRequest request) throws Exception {
+		// 获得路径参数
 		Map<String, String> uriTemplateVars = (Map<String, String>) request.getAttribute(
 				HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE, RequestAttributes.SCOPE_REQUEST);
+		// 获得参数值
 		return (uriTemplateVars != null ? uriTemplateVars.get(name) : null);
 	}
 

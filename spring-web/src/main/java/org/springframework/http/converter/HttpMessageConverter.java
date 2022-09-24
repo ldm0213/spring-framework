@@ -27,7 +27,11 @@ import org.springframework.lang.Nullable;
 /**
  * Strategy interface for converting from and to HTTP requests and responses.
  *
- * @author Arjen Poutsma
+ * 在SpringMVC中，可以使用@RequestBody和@ResponseBody两个注解，分别完成请求报文到对象和对象到响应报文的转换，
+ * 底层这种灵活的消息转换机制就是利用HttpMessageConverter来实现的,Spring内置了很多HttpMessageConverter，
+ * 比如MappingJackson2HttpMessageConverter，StringHttpMessageConverter等
+ *
+ *  @author Arjen Poutsma
  * @author Juergen Hoeller
  * @since 3.0
  * @param <T> the converted object type

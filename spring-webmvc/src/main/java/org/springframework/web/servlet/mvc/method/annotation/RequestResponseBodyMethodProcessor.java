@@ -108,17 +108,21 @@ public class RequestResponseBodyMethodProcessor extends AbstractMessageConverter
 
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
+		// 有RequestBody注解
 		return parameter.hasParameterAnnotation(RequestBody.class);
 	}
 
 	@Override
 	public boolean supportsReturnType(MethodParameter returnType) {
+		// 有ResponseBody注解
 		return (AnnotatedElementUtils.hasAnnotation(returnType.getContainingClass(), ResponseBody.class) ||
 				returnType.hasMethodAnnotation(ResponseBody.class));
 	}
 
 	/**
 	 * Throws MethodArgumentNotValidException if validation fails.
+	 * 解析参数，如果验证失败，则引发MethodArgumentNotValidException.
+	 *
 	 * @throws HttpMessageNotReadableException if {@link RequestBody#required()}
 	 * is {@code true} and there is no body content or if there is no suitable
 	 * converter to read the content with.
@@ -128,13 +132,18 @@ public class RequestResponseBodyMethodProcessor extends AbstractMessageConverter
 			NativeWebRequest webRequest, @Nullable WebDataBinderFactory binderFactory) throws Exception {
 
 		parameter = parameter.nestedIfOptional();
+		// 读取完整请求.
 		Object arg = readWithMessageConverters(webRequest, parameter, parameter.getNestedGenericParameterType());
 		String name = Conventions.getVariableNameForParameter(parameter);
 
 		if (binderFactory != null) {
 			WebDataBinder binder = binderFactory.createBinder(webRequest, arg, name);
 			if (arg != null) {
+				// 判断参是是否使用了@Validated注解或者使用了Vlid开头的注解，则使用Validator接口实现类校验数据(如果适用)
 				validateIfApplicable(binder, parameter);
+				// 判断校验结果是否有错误，然后判断当前参数后挨着的是不是BindingResult对象
+				// 如果不是则报错，可以通过全局异常处理的形式处理返回校验结果(推荐)
+				// 如果不是，则由ErrorsMethodArgumentResolver参数解析器将校验结果复制到BindingResult入参对象中，可以在方法中处理或者配合切面处理
 				if (binder.getBindingResult().hasErrors() && isBindExceptionRequired(binder, parameter)) {
 					throw new MethodArgumentNotValidException(parameter, binder.getBindingResult());
 				}
@@ -147,6 +156,7 @@ public class RequestResponseBodyMethodProcessor extends AbstractMessageConverter
 		return adaptArgumentIfNecessary(arg, parameter);
 	}
 
+	// 使用消息转换器读取请求.
 	@Override
 	protected <T> Object readWithMessageConverters(NativeWebRequest webRequest, MethodParameter parameter,
 			Type paramType) throws IOException, HttpMediaTypeNotSupportedException, HttpMessageNotReadableException {
@@ -154,7 +164,7 @@ public class RequestResponseBodyMethodProcessor extends AbstractMessageConverter
 		HttpServletRequest servletRequest = webRequest.getNativeRequest(HttpServletRequest.class);
 		Assert.state(servletRequest != null, "No HttpServletRequest");
 		ServletServerHttpRequest inputMessage = new ServletServerHttpRequest(servletRequest);
-
+		// 读取请求报文.
 		Object arg = readWithMessageConverters(inputMessage, parameter, paramType);
 		if (arg == null && checkRequired(parameter)) {
 			throw new HttpMessageNotReadableException("Required request body is missing: " +

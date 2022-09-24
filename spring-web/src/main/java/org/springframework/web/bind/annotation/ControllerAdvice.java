@@ -65,6 +65,9 @@ import org.springframework.stereotype.Component;
  * are performed at runtime, so adding many selectors may negatively impact
  * performance and add complexity.
  *
+ * @ControllerAdvice注解是Spring3.2中新增的注解，学名是Controller增强器，作用是给Controller控制器添加统一的操作或处理
+ * 一般可用于：全局异常处理、全局数据预处理、全局数据绑定
+ *
  * @author Rossen Stoyanchev
  * @author Brian Clozel
  * @author Sam Brannen

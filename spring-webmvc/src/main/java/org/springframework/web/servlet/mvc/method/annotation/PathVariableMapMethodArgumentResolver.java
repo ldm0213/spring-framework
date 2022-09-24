@@ -37,6 +37,8 @@ import org.springframework.web.servlet.HandlerMapping;
  * where the annotation does not specify a path variable name. The created
  * {@link Map} contains all URI template name/value pairs.
  *
+ * 处理有 @PathVariable 注解，Map 类型，但是没有 name 属性的情况
+ *
  * @author Rossen Stoyanchev
  * @since 3.2
  * @see PathVariableMethodArgumentResolver

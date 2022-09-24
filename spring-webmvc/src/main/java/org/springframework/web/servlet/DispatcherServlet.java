@@ -1310,6 +1310,11 @@ public class DispatcherServlet extends FrameworkServlet {
 
 	/**
 	 * Return the HandlerAdapter for this handler object.
+	 * 获取handler对应的Adapter
+	 * HandlerAdapter组件，处理器的适配器。因为处理器 handler 的类型是 Object 类型，需要有一个调用者来实现 handler 是怎么被执行。
+	 * Spring 中的处理器的实现多变，比如用户的处理器可以实现 Controller 接口或者 HttpRequestHandler 接口，也可以用 @RequestMapping 注解将方法作为一个处理器等，
+	 * 这就导致 Spring MVC 无法直接执行这个处理器。所以这里需要一个处理器适配器，由它去执行处理器
+	 *
 	 * @param handler the handler object to find an adapter for
 	 * @throws ServletException if no HandlerAdapter can be found for the handler. This is a fatal error.
 	 */
@@ -1319,6 +1324,8 @@ public class DispatcherServlet extends FrameworkServlet {
 		// 这里使用的是适配器模式，通过这样的方式就可以支持不同类型的HandlerAdapter。如果没有查找到能够处理Handler的HandlerAdapter则会抛出异常，
 		// 如果在开发的过程中Handler在实现接口时出现了问题就可能会遇到上述异常。
 		if (this.handlerAdapters != null) {
+			// 获取处理器对应 HandlerAdapter 组件是有一定的先后顺序的，
+			// 默认是HttpRequestHandlerAdapter -> SimpleControllerHandlerAdapter -> RequestMappingHandlerAdapter
 			for (HandlerAdapter adapter : this.handlerAdapters) {
 				if (adapter.supports(handler)) {
 					return adapter;

@@ -49,6 +49,12 @@ import org.springframework.web.multipart.support.MultipartResolutionDelegate;
  * and all their values for cases where request parameters have multiple values
  * (or multiple multipart files of the same name).
  *
+ * 用于处理带有 @RequestParam 注解，但是注解上没有 name 属性的 Map 类型的参数
+ * @RequestMapping("/hello")
+ * public String hello4(@RequestParam Map<String, Object> map) {
+ *     return "666";
+ * }
+ *
  * @author Arjen Poutsma
  * @author Rossen Stoyanchev
  * @author Juergen Hoeller
@@ -62,6 +68,7 @@ public class RequestParamMapMethodArgumentResolver implements HandlerMethodArgum
 
 	@Override
 	public boolean supportsParameter(MethodParameter parameter) {
+		// 有RequestParam注解，并且是Map类型，并且没有name
 		RequestParam requestParam = parameter.getParameterAnnotation(RequestParam.class);
 		return (requestParam != null && Map.class.isAssignableFrom(parameter.getParameterType()) &&
 				!StringUtils.hasText(requestParam.name()));
@@ -73,6 +80,7 @@ public class RequestParamMapMethodArgumentResolver implements HandlerMethodArgum
 
 		ResolvableType resolvableType = ResolvableType.forMethodParameter(parameter);
 
+		// MultiValueMap 类型的处理
 		if (MultiValueMap.class.isAssignableFrom(parameter.getParameterType())) {
 			// MultiValueMap
 			Class<?> valueType = resolvableType.as(MultiValueMap.class).getGeneric(1).resolve();
@@ -103,7 +111,7 @@ public class RequestParamMapMethodArgumentResolver implements HandlerMethodArgum
 				return result;
 			}
 		}
-
+		// 普通 Map 类型的处理
 		else {
 			// Regular Map
 			Class<?> valueType = resolvableType.asMap().getGeneric(1).resolve();

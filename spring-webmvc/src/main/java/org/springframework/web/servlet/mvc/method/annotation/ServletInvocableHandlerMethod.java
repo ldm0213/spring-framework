@@ -56,6 +56,17 @@ import org.springframework.web.util.NestedServletException;
  * (see {@link ServletWebRequest#checkNotModified(long)}), or
  * a method argument that provides access to the response stream.
  *
+ * 它是对InvocableHandlerMethod的扩展，它增加了返回值和响应状态码的处理，
+ * 另外在ServletInvocableHandlerMethod有个内部类ConcurrentResultHandlerMethod继承于它，
+ * 支持异常调用结果处理，Servlet容器下Controller在查找适配器时发起调用的最终就是ServletInvocableHandlerMethod。
+ *
+ * HandlerMethod用于封装Handler和处理请求的Method；
+ * InvocableHandlerMethod增加了方法参数解析和调用方法的能力；
+ * ServletInvocableHandlerMethod在此基础上在增加了：
+ * 	1. 对@ResponseStatus注解的支持, 当一个方法注释了@ResponseStatus后，响应码就是注解上的响应码。
+ * 		并且如果returnValue=null或者reason不为空（不为null且不为“”），将中断处理直接返回(不再渲染页面)
+ *  2. 对返回值returnValue的处理，对返回值的处理是使用HandlerMethodReturnValueHandlerComposite完成的，对异步处理结果的处理
+ *
  * @author Rossen Stoyanchev
  * @author Juergen Hoeller
  * @since 3.1
@@ -63,7 +74,7 @@ import org.springframework.web.util.NestedServletException;
 public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 
 	private static final Method CALLABLE_METHOD = ClassUtils.getMethod(Callable.class, "call");
-
+	// 处理方法返回值
 	@Nullable
 	private HandlerMethodReturnValueHandlerComposite returnValueHandlers;
 
@@ -95,16 +106,20 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 	/**
 	 * Invoke the method and handle the return value through one of the
 	 * configured {@link HandlerMethodReturnValueHandler HandlerMethodReturnValueHandlers}.
+	 * 解析参数，通过反射执行方法，解析执行结果
+	 *
 	 * @param webRequest the current request
 	 * @param mavContainer the ModelAndViewContainer for this request
 	 * @param providedArgs "given" arguments matched by type (not resolved)
 	 */
 	public void invokeAndHandle(ServletWebRequest webRequest, ModelAndViewContainer mavContainer,
 			Object... providedArgs) throws Exception {
-
+		// 交由InvocableHandlerMethod进行参数解析和方法触发，获取到结果
 		Object returnValue = invokeForRequest(webRequest, mavContainer, providedArgs);
+		// 设置响应状态码
 		setResponseStatus(webRequest);
 
+		// 设置 ModelAndViewContainer 为请求已处理，返回，和 @ResponseStatus 注解相关
 		if (returnValue == null) {
 			if (isRequestNotModified(webRequest) || getResponseStatus() != null || mavContainer.isRequestHandled()) {
 				disableContentCachingIfNecessary(webRequest);
@@ -117,6 +132,7 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 			return;
 		}
 
+		// 设置 ModelAndViewContainer 为请求未处理
 		mavContainer.setRequestHandled(false);
 		Assert.state(this.returnValueHandlers != null, "No return value handlers");
 		try {

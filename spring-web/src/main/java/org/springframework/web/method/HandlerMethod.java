@@ -53,6 +53,12 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * to obtain a {@code HandlerMethod} instance with a bean instance resolved
  * through the associated {@link BeanFactory}.
  *
+ * HandlerMethod是Handler+method，封装了很多属性，
+ * 在访问请求方法的时候可以方便的访问到方法、方法参数、方法上的注解、所属类等并且对方法参数封装处理，
+ * 也可以方便的访问到方法参数的注解等信息
+ *
+ * HandlerMethod它只负责准备数据，封装数据，而不提供具体使用的方式方法
+ *
  * @author Arjen Poutsma
  * @author Rossen Stoyanchev
  * @author Juergen Hoeller
@@ -64,33 +70,41 @@ public class HandlerMethod {
 	/** Logger that is available to subclasses. */
 	protected final Log logger = LogFactory.getLog(getClass());
 
+	// Object类型，既可以是个Bean，也可以是个BeanName （handler，一般我们写的Conrtoller就是handler)
 	private final Object bean;
-
+	// 如果是BeanName，拿就靠它拿出Bean实例了~
 	@Nullable
 	private final BeanFactory beanFactory;
 
+	// 该方法所属的类
 	private final Class<?> beanType;
 
+	// 该方法本身,具体的某个url对应method
 	private final Method method;
 
+	// 被桥接的方法,如果method是原生的,它的值同method
 	private final Method bridgedMethod;
 
+	// 封装方法参数的类实例，**一个MethodParameter就是一个入参**
 	private final MethodParameter[] parameters;
 
+	// http状态码，它要负责处理和返回
 	@Nullable
 	private HttpStatus responseStatus;
 
+	// 如果状态码里还要原因，就是这个字段，可以为null
 	@Nullable
 	private String responseStatusReason;
 
+	// 通过createWithResolvedBean()解析此handlerMethod实例的handlerMethod。
 	@Nullable
 	private HandlerMethod resolvedFromHandlerMethod;
 
+	// 标注在接口入参上的注解
 	@Nullable
 	private volatile List<Annotation[][]> interfaceParameterAnnotations;
 
 	private final String description;
-
 
 	/**
 	 * Create an instance from a bean instance and a method.
