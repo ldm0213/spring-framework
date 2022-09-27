@@ -29,6 +29,7 @@ import org.springframework.lang.Nullable;
  * <p>Error views are analogous to JSP error pages but can be used with any kind of
  * exception including any checked exception, with potentially fine-grained mappings for
  * specific handlers.
+ * 处理器异常解析器，将处理器handler执行时发生的异常转换成对应的ModelAndView结果
  *
  * @author Juergen Hoeller
  * @since 22.11.2003
@@ -41,6 +42,9 @@ public interface HandlerExceptionResolver {
 	 * <p>The returned {@code ModelAndView} may be {@linkplain ModelAndView#isEmpty() empty}
 	 * to indicate that the exception has been resolved successfully but that no view
 	 * should be rendered, for instance by setting a status code.
+	 *
+	 * 解析异常，转换成对应的 ModelAndView 结果
+	 *
 	 * @param request current HTTP request
 	 * @param response current HTTP response
 	 * @param handler the executed handler, or {@code null} if none chosen at the

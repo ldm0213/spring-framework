@@ -41,6 +41,8 @@ import org.springframework.util.Assert;
  * be specified, the use for a request body advice is only supported with
  * exactly one class argument. Consider the use of a composite interface.
  *
+ * HttpEntity和RequestBody注解的增强器，用于构建MappingJacksonInputMessage
+ *
  * @author Sebastien Deleuze
  * @since 4.2
  * @see com.fasterxml.jackson.annotation.JsonView

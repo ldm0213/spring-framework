@@ -28,6 +28,9 @@ import org.springframework.web.servlet.ModelAndView;
  * {@link org.springframework.web.servlet.HandlerExceptionResolver HandlerExceptionResolver}
  * implementations that support handling exceptions from handlers of type {@link HandlerMethod}.
  *
+ * 目前AbstractHandlerMethodExceptionResolver 只有一个 ExceptionHandlerExceptionResolver 子类，
+ * 未来我们想自定义其它的方式来配置对应的异常处理器，就可以来继承 AbstractHandlerMethodExceptionResolver 这个抽象类
+ *
  * @author Rossen Stoyanchev
  * @since 3.1
  */
@@ -40,12 +43,16 @@ public abstract class AbstractHandlerMethodExceptionResolver extends AbstractHan
 	 */
 	@Override
 	protected boolean shouldApplyTo(HttpServletRequest request, @Nullable Object handler) {
+		// 如果 handler 为空，则直接调用父方法
 		if (handler == null) {
 			return super.shouldApplyTo(request, null);
 		}
+		// 处理 handler 为 HandlerMethod 类型的情况
 		else if (handler instanceof HandlerMethod) {
+			// 获得真正的 handler
 			HandlerMethod handlerMethod = (HandlerMethod) handler;
 			handler = handlerMethod.getBean();
+			// 调用父方法
 			return super.shouldApplyTo(request, handler);
 		}
 		else {

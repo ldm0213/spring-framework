@@ -1056,7 +1056,7 @@ public class DispatcherServlet extends FrameworkServlet {
 					return;
 				}
 
-				// 根据handler找到相应的adpater
+				// 根据handler找到相应的adapter
 				HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
 
 				// Process last-modified header, if supported by the handler.
@@ -1069,12 +1069,14 @@ public class DispatcherServlet extends FrameworkServlet {
 					}
 				}
 
+				// preHandle请求处理前动作
 				if (!mappedHandler.applyPreHandle(processedRequest, response)) {
 					return;
 				}
 
 				// 如果所有拦截器的preHandle()方法都返回了true没有进行拦截，接下来前端控制器会请求执行上文获取的Handler，
 				// 这个Handler就是开发的时候编写的Controller，根据实现接口的不同执行相关方法，并获取到ModelAndView类的对象
+				// 主要是解析请求参数，invoke对应的处理函数，处理结果返回ModelAndView
 				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
 
 				if (asyncManager.isConcurrentHandlingStarted()) {
@@ -1082,9 +1084,11 @@ public class DispatcherServlet extends FrameworkServlet {
 				}
 
 				applyDefaultViewName(processedRequest, mv);
+				// postHandle请求处理后动作
 				mappedHandler.applyPostHandle(processedRequest, response, mv);
 			}
 			catch (Exception ex) {
+				// 处理过程中的异常信息
 				dispatchException = ex;
 			}
 			catch (Throwable err) {
@@ -1092,11 +1096,13 @@ public class DispatcherServlet extends FrameworkServlet {
 				// making them available for @ExceptionHandler methods and other scenarios.
 				dispatchException = new NestedServletException("Handler dispatch failed", err);
 			}
-			// 上面的处理过程有try-catch，对中间的异常会进行捕获，在结果处理中会进行不同的处理逻辑
+
+			// 上面的处理过程有try-catch，对处理过程中的异常会进行捕获，在结果处理中会进行不同的处理逻辑
 			processDispatchResult(processedRequest, response, mappedHandler, mv, dispatchException);
 		}
 		// 结果处理中也有可能有异常抛出，需要进行处理
 		catch (Exception ex) {
+			// 处理异常时候又抛出了异常信息，进行处理
 			triggerAfterCompletion(processedRequest, response, mappedHandler, ex);
 		}
 		catch (Throwable err) {
@@ -1350,25 +1356,31 @@ public class DispatcherServlet extends FrameworkServlet {
 	protected ModelAndView processHandlerException(HttpServletRequest request, HttpServletResponse response,
 			@Nullable Object handler, Exception ex) throws Exception {
 
-		// Success and error responses may use different content types
+		// 移除 PRODUCIBLE_MEDIA_TYPES_ATTRIBUTE 属性
 		request.removeAttribute(HandlerMapping.PRODUCIBLE_MEDIA_TYPES_ATTRIBUTE);
 
 		// Check registered HandlerExceptionResolvers...
 		ModelAndView exMv = null;
 		if (this.handlerExceptionResolvers != null) {
+			// 遍历 HandlerExceptionResolver 数组，解析异常，生成 ModelAndView 对象
 			for (HandlerExceptionResolver resolver : this.handlerExceptionResolvers) {
+				// 解析异常，生成 ModelAndView 对象
 				exMv = resolver.resolveException(request, response, handler, ex);
+				// 生成成功，结束循环
 				if (exMv != null) {
 					break;
 				}
 			}
 		}
+		// 情况一，生成了 ModelAndView 对象，进行返回
 		if (exMv != null) {
+			// ModelAndView 对象为空，则返回 null
 			if (exMv.isEmpty()) {
 				request.setAttribute(EXCEPTION_ATTRIBUTE, ex);
 				return null;
 			}
-			// We might still need view name translation for a plain error model...
+
+			// 没有视图则设置默认视图
 			if (!exMv.hasView()) {
 				String defaultViewName = getDefaultViewName(request);
 				if (defaultViewName != null) {
@@ -1385,6 +1397,7 @@ public class DispatcherServlet extends FrameworkServlet {
 			return exMv;
 		}
 
+		// 情况二，未生成 ModelAndView 对象，则抛出异常
 		throw ex;
 	}
 
