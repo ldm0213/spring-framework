@@ -52,6 +52,9 @@ import org.springframework.web.multipart.MultipartResolver;
  * }
  * </pre>
  *
+ * StandardServletMultipartResolver会将HttpServletRequest封装成StandardMultipartHttpServletRequest对象，
+ * 由Servlet 3.0提供API获取请求中的javax.servlet.http.Part对象，然后进行解析，文件会封装成StandardMultipartFile对象
+ *
  * @author Juergen Hoeller
  * @since 3.1
  * @see #setResolveLazily
@@ -76,12 +79,22 @@ public class StandardServletMultipartResolver implements MultipartResolver {
 		this.resolveLazily = resolveLazily;
 	}
 
-
+	/**
+	 * multipart是根据request的内容类型是否包含: "multipart/"
+	 * @param request the servlet request to be evaluated
+	 * @return
+	 */
 	@Override
 	public boolean isMultipart(HttpServletRequest request) {
 		return StringUtils.startsWithIgnoreCase(request.getContentType(), "multipart/");
 	}
 
+	/**
+	 * 创建StandardMultipartHttpServletRequest对象，使用Servlet 3.0的part相关方法，得到文件列表
+	 * @param request the servlet request to wrap (must be of a multipart content type)
+	 * @return
+	 * @throws MultipartException
+	 */
 	@Override
 	public MultipartHttpServletRequest resolveMultipart(HttpServletRequest request) throws MultipartException {
 		return new StandardMultipartHttpServletRequest(request, this.resolveLazily);

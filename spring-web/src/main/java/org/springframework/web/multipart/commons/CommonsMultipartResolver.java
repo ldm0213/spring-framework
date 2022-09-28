@@ -52,6 +52,8 @@ import org.springframework.web.util.WebUtils;
  * Needs to be initialized <i>either</i> by an application context <i>or</i>
  * via the constructor that takes a ServletContext (for standalone usage).
  *
+ * 是Apache Commons FileUpload的 MultipartResolver 实现类
+ *
  * @author Trevor D. Cook
  * @author Juergen Hoeller
  * @since 29.09.2003
