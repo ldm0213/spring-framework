@@ -1023,7 +1023,7 @@ public abstract class FrameworkServlet extends HttpServletBean implements Applic
 		initContextHolders(request, localeContext, requestAttributes);
 
 		try {
-			// 有DistpatchServlet进行处理
+			// 有DispatcherServlet进行处理
 			doService(request, response);
 		}
 		catch (ServletException | IOException ex) {

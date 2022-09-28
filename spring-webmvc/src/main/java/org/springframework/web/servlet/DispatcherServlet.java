@@ -1046,7 +1046,9 @@ public class DispatcherServlet extends FrameworkServlet {
 			Exception dispatchException = null;
 
 			try {
+				// multipart请求解析,如果是multiPart请求，会处理为MultipartHttpServletRequest
 				processedRequest = checkMultipart(request);
+				// 表示是不是文件上传
 				multipartRequestParsed = (processedRequest != request);
 
 				// 查找handler.
@@ -1082,7 +1084,7 @@ public class DispatcherServlet extends FrameworkServlet {
 				if (asyncManager.isConcurrentHandlingStarted()) {
 					return;
 				}
-
+				// 视图解析器设置ModeView的名字
 				applyDefaultViewName(processedRequest, mv);
 				// postHandle请求处理后动作
 				mappedHandler.applyPostHandle(processedRequest, response, mv);
@@ -1129,6 +1131,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * Do we need view name translation?
 	 */
 	private void applyDefaultViewName(HttpServletRequest request, @Nullable ModelAndView mv) throws Exception {
+		// 当ModelAndView对象不为null，但是它的View对象为null，则需要通过RequestToViewNameTranslator组件根据请求解析出一个默认的视图名称。
 		if (mv != null && !mv.hasView()) {
 			String defaultViewName = getDefaultViewName(request);
 			if (defaultViewName != null) {
@@ -1384,6 +1387,7 @@ public class DispatcherServlet extends FrameworkServlet {
 
 			// 没有视图则设置默认视图
 			if (!exMv.hasView()) {
+				// 视图名称解析
 				String defaultViewName = getDefaultViewName(request);
 				if (defaultViewName != null) {
 					exMv.setViewName(defaultViewName);
@@ -1413,7 +1417,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * @throws Exception if there's a problem rendering the view
 	 */
 	protected void render(ModelAndView mv, HttpServletRequest request, HttpServletResponse response) throws Exception {
-		// Determine locale for request and apply it to the response.
+		// LocalResolver进行解析，根据request的Acccept-language选择合适的locale
 		Locale locale =
 				(this.localeResolver != null ? this.localeResolver.resolveLocale(request) : request.getLocale());
 		response.setLocale(locale);
@@ -1460,6 +1464,8 @@ public class DispatcherServlet extends FrameworkServlet {
 
 	/**
 	 * Translate the supplied request into a default view name.
+	 * 视图名称转换器解析出请求的默认视图名
+	 *
 	 * @param request current HTTP servlet request
 	 * @return the view name (or {@code null} if no default found)
 	 * @throws Exception if view name translation failed

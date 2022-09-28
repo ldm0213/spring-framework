@@ -36,6 +36,8 @@ import org.springframework.web.servlet.LocaleResolver;
  * <p>Note: Does not support {@code setLocale}, since the accept header
  * can only be changed through changing the client's locale settings.
  *
+ * 通过检验 HTTP 请求的Accept-Language头部来解析区域
+ *
  * @author Juergen Hoeller
  * @author Rossen Stoyanchev
  * @since 27.02.2003
@@ -95,16 +97,23 @@ public class AcceptHeaderLocaleResolver implements LocaleResolver {
 
 	@Override
 	public Locale resolveLocale(HttpServletRequest request) {
+		// 获取默认的语言环境
 		Locale defaultLocale = getDefaultLocale();
+		// 如果请求头 'Accept-Language' 为空，且默认语言环境不为空，则返回默认的
 		if (defaultLocale != null && request.getHeader("Accept-Language") == null) {
 			return defaultLocale;
 		}
+		// 从请求中获取 Locale 对象 `requestLocale`
 		Locale requestLocale = request.getLocale();
+		// 获取当前支持的 `supportedLocales` 集合
 		List<Locale> supportedLocales = getSupportedLocales();
+		// 如果支持的 `supportedLocales` 集合为空，或者包含请求中的 `requestLocale` ，则返回请求中的语言环境
 		if (supportedLocales.isEmpty() || supportedLocales.contains(requestLocale)) {
 			return requestLocale;
 		}
+		// 从请求中的 Locale 们和支持的 Locale 集合进行匹配
 		Locale supportedLocale = findSupportedLocale(request, supportedLocales);
+		// 如果匹配到了则直接返回匹配结果
 		if (supportedLocale != null) {
 			return supportedLocale;
 		}
