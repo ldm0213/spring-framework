@@ -1410,6 +1410,8 @@ public class DispatcherServlet extends FrameworkServlet {
 	/**
 	 * Render the given ModelAndView.
 	 * <p>This is the last stage in handling a request. It may involve resolving the view by name.
+	 * 对ModelAndView对象进行渲染, SpringMVC(Model View Controller)
+	 *
 	 * @param mv the ModelAndView to render
 	 * @param request current HTTP servlet request
 	 * @param response current HTTP servlet response
@@ -1418,8 +1420,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	 */
 	protected void render(ModelAndView mv, HttpServletRequest request, HttpServletResponse response) throws Exception {
 		// LocalResolver进行解析，根据request的Acccept-language选择合适的locale
-		Locale locale =
-				(this.localeResolver != null ? this.localeResolver.resolveLocale(request) : request.getLocale());
+		Locale locale = (this.localeResolver != null ? this.localeResolver.resolveLocale(request) : request.getLocale());
 		response.setLocale(locale);
 
 		View view;
@@ -1480,6 +1481,11 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * <p>The default implementations asks all ViewResolvers of this dispatcher.
 	 * Can be overridden for custom resolution strategies, potentially based on
 	 * specific model attributes or request parameters.
+	 *
+	 * 如果 ModelAndView 对象不为null，且需要进行页面渲染，则调用 render 方法，
+	 * 如果设置的 View 对象是 String 类型，也就是 viewName，则需要调用 resolveViewName 方法，
+	 * 通过 ViewResolver 根据 viewName 和 locale 解析出对应的 View 对象
+	 *
 	 * @param viewName the name of the view to resolve
 	 * @param model the model to be passed to the view
 	 * @param locale the current locale
@@ -1495,8 +1501,10 @@ public class DispatcherServlet extends FrameworkServlet {
 		// resolveViewName()方法通过遍历配置的所有ViewResolver类根据视图名称来解析对应的视图View，如果找到则返回对应视图View，没有找到则返回null。
 		if (this.viewResolvers != null) {
 			for (ViewResolver viewResolver : this.viewResolvers) {
+				// 根据 viewName + locale 参数，解析出 View 对象
 				View view = viewResolver.resolveViewName(viewName, locale);
 				if (view != null) {
+					// 解析成功，直接返回 View 对象
 					return view;
 				}
 			}

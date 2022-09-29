@@ -68,6 +68,8 @@ import org.springframework.web.servlet.support.RequestContext;
  * This will also make all such beans accessible in plain {@code ${...}}
  * expressions in a JSP 2.0 page.
  *
+ * JSP标准标签库（JSTL）是一个JSP标签集合，它封装了JSP应用的通用核心功能。
+ *
  * @author Juergen Hoeller
  * @since 27.02.2003
  * @see org.springframework.web.servlet.support.JstlUtils#exposeLocalizationContext

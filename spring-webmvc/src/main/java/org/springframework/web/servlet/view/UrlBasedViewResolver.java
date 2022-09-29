@@ -450,6 +450,7 @@ public class UrlBasedViewResolver extends AbstractCachingViewResolver implements
 	/**
 	 * This implementation returns just the view name,
 	 * as this ViewResolver doesn't support localized resolution.
+	 *  重写了父类的方法，去除locale直接返回viewName
 	 */
 	@Override
 	protected Object getCacheKey(String viewName, Locale locale) {
@@ -473,6 +474,9 @@ public class UrlBasedViewResolver extends AbstractCachingViewResolver implements
 		}
 
 		// Check for special "redirect:" prefix.
+		// 如果是 REDIRECT 开头，创建 RedirectView 视图
+		// redirect() 会丢失request的所有信息它属于页面级的重定向，仅仅让你的浏览器重新访问一个新的url，
+		// 作为浏览者，能很明显的看到浏览器url地址的变化，这和点击了一个普通的超链接的后果是一样的
 		if (viewName.startsWith(REDIRECT_URL_PREFIX)) {
 			String redirectUrl = viewName.substring(REDIRECT_URL_PREFIX.length());
 			RedirectView view = new RedirectView(redirectUrl,
@@ -485,6 +489,10 @@ public class UrlBasedViewResolver extends AbstractCachingViewResolver implements
 		}
 
 		// Check for special "forward:" prefix.
+		// 如果是 FORWARD 开头，创建 InternalResourceView 视图
+		// forward() 方法，是转发，需要request 和 response最为参数，就是将用户的请求，连同请求信息等内容，
+		// 一起转发到服务器的另外一个servlet去处理，它不会丢失request信息。这一过程是服务器内部完成的，
+		// 作为访问者，是感觉不到了，或者说是透明的，因此访客浏览器的url 是不会发生变化的
 		if (viewName.startsWith(FORWARD_URL_PREFIX)) {
 			String forwardUrl = viewName.substring(FORWARD_URL_PREFIX.length());
 			InternalResourceView view = new InternalResourceView(forwardUrl);
@@ -507,6 +515,7 @@ public class UrlBasedViewResolver extends AbstractCachingViewResolver implements
 	 */
 	protected boolean canHandle(String viewName, Locale locale) {
 		String[] viewNames = getViewNames();
+		// viewNames 指定的视图名们为空，所以会满足 viewNames == null 代码块。也就说，所有视图名都可以被处理
 		return (viewNames == null || PatternMatchUtils.simpleMatch(viewNames, viewName));
 	}
 
@@ -547,6 +556,7 @@ public class UrlBasedViewResolver extends AbstractCachingViewResolver implements
 	 * @see #loadView(String, java.util.Locale)
 	 */
 	protected AbstractUrlBasedView buildView(String viewName) throws Exception {
+		// 主要是设置各种属性url, attribute， content-type，requestContext....
 		Class<?> viewClass = getViewClass();
 		Assert.state(viewClass != null, "No view class");
 

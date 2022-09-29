@@ -37,6 +37,10 @@ import org.springframework.util.ClassUtils;
  * always needs to be last, as it will attempt to resolve any view name,
  * no matter whether the underlying resource actually exists.
  *
+ *  InternalResourceViewResolver是最常用的，该解析器可以返回指定目录下指定后缀的文件，
+ *  它支持 JSP 及 JSTL 等视图技术，但是用该视图解析器时，需要注意设置好正确的优先级，
+ *  因为该视图解析器即使没有找到正确的文件，也会返回一个视图，而不是返回 null，这样优先级比该视图解析器低的解析器，将不会被执行。
+ *
  * @author Juergen Hoeller
  * @since 17.02.2003
  * @see #setViewClass

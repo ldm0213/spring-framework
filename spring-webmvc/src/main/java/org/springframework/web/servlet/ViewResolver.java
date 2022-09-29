@@ -28,6 +28,7 @@ import org.springframework.lang.Nullable;
  *
  * <p>Implementations are encouraged to support internationalization,
  * i.e. localized view resolution.
+ * 前后端未分离的情况下重要的一个组件，后端处理完数据还要渲染页面，直接返回页面信息
  *
  * @author Rod Johnson
  * @author Juergen Hoeller
@@ -44,6 +45,9 @@ public interface ViewResolver {
 	 * However, this is not required: Some ViewResolvers will always attempt
 	 * to build View objects with the given name, unable to return {@code null}
 	 * (rather throwing an exception when View creation failed).
+	 *
+	 * 根据视图名和国际化，获得最终的 View 对象
+	 *
 	 * @param viewName name of the view to resolve
 	 * @param locale the Locale in which to resolve the view.
 	 * ViewResolvers that support internationalization should respect this.

@@ -299,6 +299,8 @@ public abstract class AbstractView extends WebApplicationObjectSupport implement
 	 * Prepares the view given the specified model, merging it with static
 	 * attributes and a RequestContext attribute, if necessary.
 	 * Delegates to renderMergedOutputModel for the actual rendering.
+	 * 主要做的操作是将model中的参数和request中的参数全部都放到Request中，然后就转发Request就可以了。
+	 *
 	 * @see #renderMergedOutputModel
 	 */
 	@Override
@@ -310,15 +312,18 @@ public abstract class AbstractView extends WebApplicationObjectSupport implement
 					", model " + (model != null ? model : Collections.emptyMap()) +
 					(this.staticAttributes.isEmpty() ? "" : ", static attributes " + this.staticAttributes));
 		}
-
+		// 合并返回结果，将model和request中的参数全部放到mergedModel中
 		Map<String, Object> mergedModel = createMergedOutputModel(model, request, response);
+		// 存放头部信息
 		prepareResponse(request, response);
+		// 将mergedModel中的参数值放到request中
 		renderMergedOutputModel(mergedModel, getRequestToExpose(request), response);
 	}
 
 	/**
 	 * Creates a combined output Map (never {@code null}) that includes dynamic values and static attributes.
 	 * Dynamic values take precedence over static attributes.
+	 * createMergedOutputModel中的操作就是将所有的数据放到mergedModel中。
 	 */
 	protected Map<String, Object> createMergedOutputModel(@Nullable Map<String, ?> model,
 			HttpServletRequest request, HttpServletResponse response) {

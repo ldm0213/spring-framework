@@ -38,6 +38,8 @@ import org.springframework.lang.Nullable;
  * <p>Views should be beans. They are likely to be instantiated as beans by a ViewResolver.
  * As this interface is stateless, view implementations should be thread-safe.
  *
+ * View视图渲染的原理，简单说就是把模型数据填充到视图模板，最终交由Servlet的response进行渲染展示
+ *
  * @author Rod Johnson
  * @author Arjen Poutsma
  * @author Rossen Stoyanchev
@@ -88,6 +90,10 @@ public interface View {
 	 * <p>The first step will be preparing the request: In the JSP case, this would mean
 	 * setting model objects as request attributes. The second step will be the actual
 	 * rendering of the view, for example including the JSP via a RequestDispatcher.
+	 *
+	 * model是一个Map结构，其实就是ModelAndView中map，存放了我们返回给请求的所有结果值
+	 * render中做的操作就是将model中的值全部存放到request和response中，这样就完成了请求的处理操作，最终就是返回response请求。
+	 *
 	 * @param model a Map with name Strings as keys and corresponding model
 	 * objects as values (Map can also be {@code null} in case of empty model)
 	 * @param request current HTTP request

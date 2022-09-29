@@ -54,6 +54,8 @@ import org.springframework.web.util.WebUtils;
  * resource (for example: "myView" -> "/WEB-INF/jsp/myView.jsp"), using
  * this view class by default.
  *
+ * InternalResourceView是JSP视图
+ *
  * @author Rod Johnson
  * @author Juergen Hoeller
  * @author Rob Harrop
@@ -139,15 +141,19 @@ public class InternalResourceView extends AbstractUrlBasedView {
 			Map<String, Object> model, HttpServletRequest request, HttpServletResponse response) throws Exception {
 
 		// Expose the model object as request attributes.
+		// 把model中的所有数据放到request中
 		exposeModelAsRequestAttributes(model, request);
 
 		// Expose helpers as request attributes, if any.
+		// 本类中的此函数是空函数，留给子类比如JstlView去实现自定义逻辑
 		exposeHelpers(request);
 
 		// Determine the path for the request dispatcher.
+		// 看看是否有跳转页面
 		String dispatcherPath = prepareForRendering(request, response);
 
 		// Obtain a RequestDispatcher for the target resource (typically a JSP).
+		// 获取跳转控制器RequestDispatcher
 		RequestDispatcher rd = getRequestDispatcher(request, dispatcherPath);
 		if (rd == null) {
 			throw new ServletException("Could not get RequestDispatcher for [" + getUrl() +
@@ -155,6 +161,7 @@ public class InternalResourceView extends AbstractUrlBasedView {
 		}
 
 		// If already included or response already committed, perform include, else forward.
+		// 直接返回用户资源
 		if (useInclude(request, response)) {
 			response.setContentType(getContentType());
 			if (logger.isDebugEnabled()) {
@@ -162,7 +169,7 @@ public class InternalResourceView extends AbstractUrlBasedView {
 			}
 			rd.include(request, response);
 		}
-
+		// 携带request和response跳转到另一个控制器方法
 		else {
 			// Note: The forwarded resource is supposed to determine the content type itself.
 			if (logger.isDebugEnabled()) {

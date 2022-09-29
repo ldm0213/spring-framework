@@ -39,6 +39,8 @@ import org.springframework.web.servlet.ViewResolver;
  * <p>Subclasses need to implement the {@link #loadView} template method,
  * building the View object for a specific view name and locale.
  *
+ * 提供通用的缓存的ViewResolver抽象类。对于相同的视图名，返回的是相同的View对象，所以通过缓存，可以进一步提供性能
+ *
  * @author Rod Johnson
  * @author Juergen Hoeller
  * @see #loadView
@@ -174,17 +176,21 @@ public abstract class AbstractCachingViewResolver extends WebApplicationObjectSu
 			return createView(viewName, locale);
 		}
 		else {
+			// cacheKey = viewName+_+locale
 			Object cacheKey = getCacheKey(viewName, locale);
 			View view = this.viewAccessCache.get(cacheKey);
 			if (view == null) {
+				// 不存在进行获取view
 				synchronized (this.viewCreationCache) {
 					view = this.viewCreationCache.get(cacheKey);
 					if (view == null) {
 						// Ask the subclass to create the View object.
 						view = createView(viewName, locale);
+						// 如果创建失败，但是 cacheUnresolved 为 true ，则设置为 UNRESOLVED_VIEW
 						if (view == null && this.cacheUnresolved) {
 							view = UNRESOLVED_VIEW;
 						}
+						// 如果 view 非空，则添加到 viewAccessCache 缓存中
 						if (view != null && this.cacheFilter.filter(view, viewName, locale)) {
 							this.viewAccessCache.put(cacheKey, view);
 							this.viewCreationCache.put(cacheKey, view);
