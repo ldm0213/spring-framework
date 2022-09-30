@@ -73,6 +73,8 @@ import org.springframework.web.util.NestedServletException;
  * filter's {@link #getServletContext() ServletContext} (see
  * {@link org.springframework.web.context.support.WebApplicationContextUtils}).
  *
+ * GenericFilterBean将web.xml中 Filter 标签中的配置参数 -init-param 项作为 Bean 的属性
+ *
  * @author Juergen Hoeller
  * @since 06.12.2003
  * @see #addRequiredProperty
@@ -202,6 +204,9 @@ public abstract class GenericFilterBean implements Filter, BeanNameAware, Enviro
 	 * Standard way of initializing this filter.
 	 * Map config parameters onto bean properties of this filter, and
 	 * invoke subclass initialization.
+	 *
+	 * 在init方法中读取我们配置的init-param参数并设置到我们自定义bean的setter方法
+	 *
 	 * @param filterConfig the configuration for this filter
 	 * @throws ServletException if bean properties are invalid (or required
 	 * properties are missing), or if subclass initialization fails.
@@ -211,8 +216,8 @@ public abstract class GenericFilterBean implements Filter, BeanNameAware, Enviro
 	public final void init(FilterConfig filterConfig) throws ServletException {
 		Assert.notNull(filterConfig, "FilterConfig must not be null");
 
+		// init-param参数解析
 		this.filterConfig = filterConfig;
-
 		// Set bean properties from init parameters.
 		PropertyValues pvs = new FilterConfigPropertyValues(filterConfig, this.requiredProperties);
 		if (!pvs.isEmpty()) {
@@ -235,7 +240,7 @@ public abstract class GenericFilterBean implements Filter, BeanNameAware, Enviro
 			}
 		}
 
-		// Let subclasses do whatever initialization they like.
+		// 子类自行实现相应的初始化操作.
 		initFilterBean();
 
 		if (logger.isDebugEnabled()) {
@@ -341,7 +346,7 @@ public abstract class GenericFilterBean implements Filter, BeanNameAware, Enviro
 
 			Set<String> missingProps = (!CollectionUtils.isEmpty(requiredProperties) ?
 					new HashSet<>(requiredProperties) : null);
-
+			// init-param参数
 			Enumeration<String> paramNames = config.getInitParameterNames();
 			while (paramNames.hasMoreElements()) {
 				String property = paramNames.nextElement();
