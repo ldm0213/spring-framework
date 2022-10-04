@@ -21,6 +21,9 @@ import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 
 /**
  * {@link NamespaceHandler} for Spring MVC configuration namespace.
+ * xmlns:mvc="http://www.springframework.org/schema/mvc"
+ *
+ * SpringMVC的相关xml标签定义的解析器
  *
  * @author Keith Donald
  * @author Jeremy Grelle
@@ -31,13 +34,16 @@ public class MvcNamespaceHandler extends NamespaceHandlerSupport {
 
 	@Override
 	public void init() {
+		// 解析annotation-driven
 		registerBeanDefinitionParser("annotation-driven", new AnnotationDrivenBeanDefinitionParser());
 		registerBeanDefinitionParser("default-servlet-handler", new DefaultServletHandlerBeanDefinitionParser());
+		// 解析拦截器
 		registerBeanDefinitionParser("interceptors", new InterceptorsBeanDefinitionParser());
 		registerBeanDefinitionParser("resources", new ResourcesBeanDefinitionParser());
 		registerBeanDefinitionParser("view-controller", new ViewControllerBeanDefinitionParser());
 		registerBeanDefinitionParser("redirect-view-controller", new ViewControllerBeanDefinitionParser());
 		registerBeanDefinitionParser("status-controller", new ViewControllerBeanDefinitionParser());
+		// 解析视图解析器
 		registerBeanDefinitionParser("view-resolvers", new ViewResolversBeanDefinitionParser());
 		registerBeanDefinitionParser("tiles-configurer", new TilesConfigurerBeanDefinitionParser());
 		registerBeanDefinitionParser("freemarker-configurer", new FreeMarkerConfigurerBeanDefinitionParser());

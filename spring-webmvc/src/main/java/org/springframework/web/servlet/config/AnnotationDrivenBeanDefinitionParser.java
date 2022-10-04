@@ -143,6 +143,10 @@ import org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolv
  * libraries are available on the classpath.
  * </ul>
  *
+ * Spring MVC 中如果配置了 <mvc:annotation-driven> ，则所有的 Controller 就会被解析，
+ * 所以相应的 .do 请求就会被 Controller 处理，当请求没有匹配到处理类（其中包括没有配置 <mvc:annotation-driven> 或者 访问的是静态资源文件）时，
+ * 就会去找 <mvc:default-servlet-handler> （处理静态资源文件）配置的 DefaultServletHttpRequestHandler 默认处理器处理
+ *
  * @author Keith Donald
  * @author Juergen Hoeller
  * @author Arjen Poutsma
@@ -181,6 +185,7 @@ class AnnotationDrivenBeanDefinitionParser implements BeanDefinitionParser {
 		javaxValidationPresent = ClassUtils.isPresent("javax.validation.Validator", classLoader);
 		romePresent = ClassUtils.isPresent("com.rometools.rome.feed.WireFeed", classLoader);
 		jaxb2Present = ClassUtils.isPresent("javax.xml.bind.Binder", classLoader);
+		// jackson存在
 		jackson2Present = ClassUtils.isPresent("com.fasterxml.jackson.databind.ObjectMapper", classLoader) &&
 						ClassUtils.isPresent("com.fasterxml.jackson.core.JsonGenerator", classLoader);
 		jackson2XmlPresent = ClassUtils.isPresent("com.fasterxml.jackson.dataformat.xml.XmlMapper", classLoader);
@@ -201,17 +206,17 @@ class AnnotationDrivenBeanDefinitionParser implements BeanDefinitionParser {
 
 		RuntimeBeanReference contentNegotiationManager = getContentNegotiationManager(element, source, context);
 
+		// 定义 RequestMappingHandlerMapping的RootBean，设置相关的属性
 		RootBeanDefinition handlerMappingDef = new RootBeanDefinition(RequestMappingHandlerMapping.class);
 		handlerMappingDef.setSource(source);
 		handlerMappingDef.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 		handlerMappingDef.getPropertyValues().add("order", 0);
 		handlerMappingDef.getPropertyValues().add("contentNegotiationManager", contentNegotiationManager);
-
 		if (element.hasAttribute("enable-matrix-variables")) {
 			boolean enableMatrixVariables = Boolean.parseBoolean(element.getAttribute("enable-matrix-variables"));
 			handlerMappingDef.getPropertyValues().add("removeSemicolonContent", !enableMatrixVariables);
 		}
-
+		// 配置路径匹配解析器等属性
 		configurePathMatchingProperties(handlerMappingDef, element, context);
 		readerContext.getRegistry().registerBeanDefinition(HANDLER_MAPPING_BEAN_NAME, handlerMappingDef);
 
@@ -229,20 +234,26 @@ class AnnotationDrivenBeanDefinitionParser implements BeanDefinitionParser {
 		bindingDef.getPropertyValues().add("validator", validator);
 		bindingDef.getPropertyValues().add("messageCodesResolver", messageCodesResolver);
 
+		// 下面三个都用在handlerAdpater中
+		// 消息转换器
 		ManagedList<?> messageConverters = getMessageConverters(element, source, context);
+		// 参数解析器
 		ManagedList<?> argumentResolvers = getArgumentResolvers(element, context);
+		// 返回值处理器
 		ManagedList<?> returnValueHandlers = getReturnValueHandlers(element, context);
 		String asyncTimeout = getAsyncTimeout(element);
 		RuntimeBeanReference asyncExecutor = getAsyncExecutor(element);
 		ManagedList<?> callableInterceptors = getInterceptors(element, source, context, "callable-interceptors");
 		ManagedList<?> deferredResultInterceptors = getInterceptors(element, source, context, "deferred-result-interceptors");
 
+		// 定义 RequestMappingHandlerAdapter，设置相关属性
 		RootBeanDefinition handlerAdapterDef = new RootBeanDefinition(RequestMappingHandlerAdapter.class);
 		handlerAdapterDef.setSource(source);
 		handlerAdapterDef.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
 		handlerAdapterDef.getPropertyValues().add("contentNegotiationManager", contentNegotiationManager);
 		handlerAdapterDef.getPropertyValues().add("webBindingInitializer", bindingDef);
 		handlerAdapterDef.getPropertyValues().add("messageConverters", messageConverters);
+		// jackson存在，则增加jsonView的参数和返回值增强器advice
 		addRequestBodyAdvice(handlerAdapterDef);
 		addResponseBodyAdvice(handlerAdapterDef);
 
@@ -285,6 +296,7 @@ class AnnotationDrivenBeanDefinitionParser implements BeanDefinitionParser {
 		mappedInterceptorDef.getConstructorArgumentValues().addIndexedArgumentValue(1, csInterceptorDef);
 		String mappedInterceptorName = readerContext.registerWithGeneratedName(mappedInterceptorDef);
 
+		// ExceptionHandlerExceptionResolver
 		RootBeanDefinition methodExceptionResolver = new RootBeanDefinition(ExceptionHandlerExceptionResolver.class);
 		methodExceptionResolver.setSource(source);
 		methodExceptionResolver.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
@@ -312,6 +324,7 @@ class AnnotationDrivenBeanDefinitionParser implements BeanDefinitionParser {
 		defaultExceptionResolver.getPropertyValues().add("order", 2);
 		String defaultExResolverName = readerContext.registerWithGeneratedName(defaultExceptionResolver);
 
+		// 注册相关的bean
 		context.registerComponent(new BeanComponentDefinition(handlerMappingDef, HANDLER_MAPPING_BEAN_NAME));
 		context.registerComponent(new BeanComponentDefinition(handlerAdapterDef, HANDLER_ADAPTER_BEAN_NAME));
 		context.registerComponent(new BeanComponentDefinition(uriContributorDef, uriContributorName));
