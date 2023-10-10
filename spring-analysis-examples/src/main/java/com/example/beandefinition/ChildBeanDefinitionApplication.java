@@ -9,7 +9,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
  * @author lidongmeng
  * Created on 2022-07-14
  */
-public class ChildBeanDefinitionApplicatin {
+public class ChildBeanDefinitionApplication {
 	public static void main(String[] args) {
 		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext();
 

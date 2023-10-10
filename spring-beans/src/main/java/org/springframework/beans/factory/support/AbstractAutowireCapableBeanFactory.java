@@ -1206,7 +1206,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			return instantiateUsingFactoryMethod(beanName, mbd, args);
 		}
 
-		// 这里是对非单例bean做的优化，如果创建过一次了，
+		// 原型情况下避免多次解析：这里是对非单例bean做的优化，如果创建过一次了，
 		// spring会把相应的构造器或者工厂方法存到resolvedConstructorOrFactoryMethod字段
 		// 这样再次创建这个类的实例的时候就可以直接使用resolvedConstructorOrFactoryMethod创建了
 		boolean resolved = false;
@@ -1836,11 +1836,10 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				invokeAwareMethods(beanName, bean);
 				return null;
 			}, getAccessControlContext());
-		}
-		else {
+		} else {
 			// 调用aware方法 -- 需要注意的是这里只调用了一部分aware接口的方法
 			// 还有一部分XxxAware接口的调用是通过beanPostProcessor来实现的
-			// AnnotationAwareAspectJAutoProxyCreator类型实现了BeanFactoryAware
+			// AnnotationAwareAspectJAutoProxyCreator类型实现了BeanFactoryAware，初始化
 			invokeAwareMethods(beanName, bean);
 		}
 

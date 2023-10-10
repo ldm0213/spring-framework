@@ -145,6 +145,7 @@ public class ComponentScanBeanDefinitionParser implements BeanDefinitionParser {
 				readerContext.getEnvironment(), readerContext.getResourceLoader());
 	}
 
+	// 注册一些通用的bean
 	protected void registerComponents(
 			XmlReaderContext readerContext, Set<BeanDefinitionHolder> beanDefinitions, Element element) {
 
@@ -171,6 +172,7 @@ public class ComponentScanBeanDefinitionParser implements BeanDefinitionParser {
 		readerContext.fireComponentRegistered(compositeDef);
 	}
 
+	// component-scan的属性解析
 	protected void parseBeanNameGenerator(Element element, ClassPathBeanDefinitionScanner scanner) {
 		// name-generator: Bean的ID策略生成器。指定你的构造型注解，注册为Bean的ID生成策略
 		if (element.hasAttribute(NAME_GENERATOR_ATTRIBUTE)) {

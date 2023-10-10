@@ -1,6 +1,6 @@
 package com.example.pattern.observer;
 
-import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 /**
@@ -8,8 +8,8 @@ import org.springframework.stereotype.Component;
  * Created on 2022-07-12
  */
 @Component
-public class MyListenerA implements ApplicationListener<MyEvent> {
-	@Override
+public class MyListenerA {
+	@EventListener
 	public void onApplicationEvent(MyEvent event) {
 		System.out.println("ListenerA received");
 	}

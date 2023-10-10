@@ -32,11 +32,11 @@ public class IocExampleMain {
 		// beanWrapper();
 		// beanGet();
 		// beanProcessorExample();
-		staticFatoryBeanExample();
+		staticFactoryBeanExample();
 	}
 
-	public static void staticFatoryBeanExample() {
-		ApplicationContext ctx = new ClassPathXmlApplicationContext("beans.xml");
+	public static void staticFactoryBeanExample() {
+		ApplicationContext ctx = new ClassPathXmlApplicationContext("factory_beans.xml");
 		Car car1 = (Car) ctx.getBean("bmwCar");
 		System.out.println(car1);
 

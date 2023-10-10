@@ -44,6 +44,9 @@ import org.springframework.util.ClassUtils;
  * '{@code proxy-target-class}' attribute to '{@code true}', which
  * will result in class-based proxies being created.
  *
+ * xml配置方式增加transaction相关的bean(<tx:annotation-driven/>)
+ * proxy-target-class来表示使用JDK-Proxy还是Cglib
+ *
  * @author Juergen Hoeller
  * @author Rob Harrop
  * @author Chris Beams
@@ -64,6 +67,7 @@ class AnnotationDrivenBeanDefinitionParser implements BeanDefinitionParser {
 		String mode = element.getAttribute("mode");
 		if ("aspectj".equals(mode)) {
 			// mode="aspectj"
+			// 提供对aspectj方式进行事务切入的支持
 			registerTransactionAspect(element, parserContext);
 			if (ClassUtils.isPresent("javax.transaction.Transactional", getClass().getClassLoader())) {
 				registerJtaTransactionAspect(element, parserContext);
@@ -71,6 +75,7 @@ class AnnotationDrivenBeanDefinitionParser implements BeanDefinitionParser {
 		}
 		else {
 			// mode="proxy"
+			// 配置自动代理创建器
 			AopAutoProxyConfigurer.configureAutoProxyCreator(element, parserContext);
 		}
 		return null;
